@@ -1,9 +1,7 @@
-from unicodedata import name
 import numpy as np
 from time import sleep
 import pybullet as p
 import pybullet_data
-import random
 
 # Connect to the physics client
 client = p.connect(p.GUI)
