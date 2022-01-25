@@ -17,7 +17,7 @@ planeId = p.loadURDF("plane.urdf")
 # Load the simulated hand
 startPosition = [0, 0, 1/4]
 startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, np.pi/8])
-hand = p.loadURDF("sr_common/sr_description/mujoco_models/urdfs/shadowhand_motor.urdf", startPosition, startOrientation)
+hand = p.loadURDF("urdfs/shadow_hand/shadow_hand.urdf", startPosition, startOrientation)
 
 
 def get_join_info():
