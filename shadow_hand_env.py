@@ -38,8 +38,8 @@ def manipulate_joint(joint_id):
 
     joint number - description
     --------------------------
-    1 - wrist motion (vertical)
-    2 - wrist motion (horizontal)
+    1 - wrist motion (horizontal)
+    2 - wrist motion (vertical)
     5 - index finger (horizontal)
     6 - index finger base (vertical)
     7 - index finger middle (vertical)
@@ -57,6 +57,7 @@ def manipulate_joint(joint_id):
     22 - little finger base (vertical)
     23 - little finger middle (vertical)
     24 - little finger tip (vertical)
+    26 - thumb rotation
     27 - thumb finger base (vertical)
     28 - thumb finger middle (vertical)
     29 - thumb finger middle (horizontal)
@@ -79,4 +80,4 @@ def run_sim():
         p.stepSimulation()
         sleep(1/60)
 
-manipulate_joint(1)
+manipulate_joint(30)
