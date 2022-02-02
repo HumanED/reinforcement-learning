@@ -35,8 +35,21 @@ class ShadowEnv(gym.Env):
 
         self.client = p.connect(p.DIRECT)
 
+        p.setTimeStep(1/30, self.client)
+        
+        self.hand = None
+
+        self.reset()
+
     def step(self, action):
-        pass
+        self.hand.apply_action(action)
+        p.stepSimulation()
+
+        observation = None
+        reward = None
+        self.done = False
+
+        return observation, reward, self.done, dict()
 
     def reset(self):
         pass
@@ -46,7 +59,7 @@ class ShadowEnv(gym.Env):
 
     def close(self):
         p.disconnect(self.client)
-            
+
     def seed(self, seed=None): 
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
