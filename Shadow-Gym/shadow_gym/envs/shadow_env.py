@@ -22,10 +22,15 @@ class ShadowEnv(gym.Env):
   
     def __init__(self):
         self.action_space = gym.spaces.box.Box(
-            low = np.append(wrist_low, index_low, middle_low, ring_low, little_low, thumb_low),
-            high = np.append(wrist_high, index_high, middle_high, ring_high, little_high, thumb_high)
+            low = np.concatenate((wrist_low, index_low, middle_low, ring_low, little_low, thumb_low)),
+            high = np.concatenate((wrist_high, index_high, middle_high, ring_high, little_high, thumb_high))
         )
-        pass
+        self.observation_space = gym.spaces.box.Box(
+            low = np.array([-10, -10, -10]),
+            high = np.array([10, 10, 10])
+        )
+        self.np_random, _ = gym.utils.seeding.np_random()
+        
 
     def step(self, action):
         pass
@@ -39,4 +44,5 @@ class ShadowEnv(gym.Env):
     def close(self):
         pass    
     def seed(self, seed=None): 
-        pass
+        self.np_random, seed = gym.utils.seeding.np_random(seed)
+        return [seed]
