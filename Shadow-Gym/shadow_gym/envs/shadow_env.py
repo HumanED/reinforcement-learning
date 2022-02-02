@@ -1,6 +1,9 @@
 import gym
 import numpy as np
 import pybullet as p
+from shadow_gym.resources.hand import Hand
+from shadow_gym.resources.plane import Plane
+import matplotlib.pyplot as plt
 
 wrist_low = np.array([-0.489, -0.785])
 wrist_high = np.array([0.140, 0.524])
@@ -38,6 +41,7 @@ class ShadowEnv(gym.Env):
         p.setTimeStep(1/30, self.client)
         
         self.hand = None
+        self.rendered_img = None
 
         self.reset()
 
@@ -52,10 +56,36 @@ class ShadowEnv(gym.Env):
         return observation, reward, self.done, dict()
 
     def reset(self):
-        pass
+        p.resetSimulation(self.client)
+        p.setGravity(0, 0, -10)
+
+        Plane(self.client)
+        self.hand = Hand(self.client)
 
     def render(self):
-        pass
+        if self.rendered_img is None:
+            self.rendered_img = plt.imshow(np.zeros((100, 100, 4)))
+
+        # Base information
+        hand_id, client_id = self.hand.get_ids()
+        proj_matrix = p.computeProjectionMatrixFOV(fov=80, aspect=1,
+                                                   nearVal=0.01, farVal=100)
+        pos, ori = [list(l) for l in
+                    p.getBasePositionAndOrientation(hand_id, client_id)]
+        pos[2] = 0.2
+
+        # Rotate camera direction
+        rot_mat = np.array(p.getMatrixFromQuaternion(ori)).reshape(3, 3)
+        camera_vec = np.matmul(rot_mat, [1, 0, 0])
+        up_vec = np.matmul(rot_mat, np.array([0, 0, 1]))
+        view_matrix = p.computeViewMatrix(pos, pos + camera_vec, up_vec)
+
+        # Display image
+        frame = p.getCameraImage(100, 100, view_matrix, proj_matrix)[2]
+        frame = np.reshape(frame, (100, 100, 4))
+        self.rendered_img.set_data(frame)
+        plt.draw()
+        plt.pause(.00001)
 
     def close(self):
         p.disconnect(self.client)

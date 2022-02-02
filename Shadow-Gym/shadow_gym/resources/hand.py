@@ -11,13 +11,13 @@ class Hand:
 
         startPosition = [0, 0, 1/4]
         startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, np.pi/8])
-        self.hand = p.loadURDF(fileName=f_name,
-                              startPosition = startPosition,
-                              startOrientation = startOrientation,
-                              physicsClientId=client)
+        self.hand = p.loadURDF(f_name,
+                               startPosition,
+                               startOrientation,
+                               physicsClientId=client)
 
     def get_ids(self):
-        return self.client, self.hand
+        return self.hand, self.client
 
     def apply_action(self, action):
         joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30]
