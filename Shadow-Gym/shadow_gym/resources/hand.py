@@ -10,7 +10,7 @@ class Hand:
                               'shadow_hand.urdf')
 
         startPosition = [0, 0, 1/4]
-        startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, np.pi/8])
+        startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, 0])
         self.hand = p.loadURDF(f_name,
                                startPosition,
                                startOrientation,
@@ -29,4 +29,11 @@ class Hand:
                                     targetPosition=target_position)
     
     def get_observation(self):
-        pass
+        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30]
+        joint_position = []
+
+        for joint_id in joints:
+            joint_position.append(p.getJointState(self.hand, joint_id)[0])
+
+        return np.array(joint_position)
+        
