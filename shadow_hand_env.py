@@ -16,9 +16,9 @@ planeId = p.loadURDF("plane.urdf")
 
 # Load the simulated hand
 startPosition = [0, 0, 1/4]
-startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, np.pi/8])
+startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, 0])
 hand = p.loadURDF("urdfs/shadow_hand/shadow_hand.urdf", startPosition, startOrientation)
-
+cube = p.loadURDF("urdfs/cube/cube.urdf", [0, -1/3.5, 1/3])
 
 def get_join_info():
     """
@@ -70,6 +70,9 @@ def manipulate_joint(joint_id):
                                 p.POSITION_CONTROL,
                                 targetPosition=user_input)
         p.stepSimulation()
+        position, orientation = p.getBasePositionAndOrientation(cube)
+        print(position[2])
+        sleep(1/60)
 
 
 def run_sim():
