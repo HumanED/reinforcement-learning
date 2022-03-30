@@ -12,5 +12,5 @@ while True:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
     if done:
-        obs = env.reset()
+        obs = env.reset_step()
     sleep(1/30)

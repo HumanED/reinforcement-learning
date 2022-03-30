@@ -97,12 +97,29 @@ class ShadowEnv(gym.Env):
         observation = np.concatenate((hand_observation, cube_observation))
         return observation
 
+    def reset_step(self):
+        cube_id, client_id = self.cube.get_ids()
+        p.removeBody(cube_id)
+        self.cube = Cube(self.client)
+        hand_id, client_id = self.hand.get_ids()
+        p.resetBasePositionAndOrientation(hand_id, self.hand.startPosition, self.hand.startOrientation)
+
+        for i in self.hand.joints:
+            p.resetJointState(hand_id, i, 0)
+        self.done = False
+        self.num_steps = 0
+        hand_observation = self.hand.get_observation()
+        cube_observation = self.cube.get_observation()
+        observation = np.concatenate((hand_observation, cube_observation))
+        return observation
+
     def render(self):
         if self.rendered_img is None:
             self.rendered_img = plt.imshow(np.zeros((100, 100, 4)))
 
         # Base information
         hand_id, client_id = self.hand.get_ids()
+        cube_id, client_id = self.cube.get_ids()
         proj_matrix = p.computeProjectionMatrixFOV(fov=80, aspect=1,
                                                    nearVal=0.01, farVal=100)
         pos, ori = [list(l) for l in

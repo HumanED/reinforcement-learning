@@ -1,0 +1,6 @@
+README.md
+shadow_gym.egg-info/PKG-INFO
+shadow_gym.egg-info/SOURCES.txt
+shadow_gym.egg-info/dependency_links.txt
+shadow_gym.egg-info/requires.txt
+shadow_gym.egg-info/top_level.txt
