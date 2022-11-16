@@ -7,3 +7,6 @@
 
 `shadow_hand_env.py` - contains basic functionalities to interact with the Shadow Hand in PyBullet.
 
+### Installation Instructions
+
+Run "pip install -e ." in `Shadow-Gym` folder and install other required packages (gym, stable-baselines3, pybullet)
