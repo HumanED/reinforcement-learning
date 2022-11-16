@@ -81,6 +81,6 @@ def run_sim():
     """
     while True:
         p.stepSimulation()
-        sleep(3/60)
+        sleep(5/60)
 
-manipulate_joint(30)
+manipulate_joint(10)
