@@ -3,37 +3,34 @@ import os
 import numpy as np
 
 
-
 class Cube:
     def __init__(self, client):
         self.client = client
-        f_name = os.path.join(os.path.dirname(__file__),
-                              'cube.urdf')
-        # Default start position.
-        # startPosition = [0, -1/3.5, 1/3]
-        # Start position over the fingers. Same height as default
-        startPosition = [0, -1/3.5 - 0.08, 1/3]
-        # startPosition tester
-        # startPosition = [0, -1/3.5, 1/3]
-        
+        f_name = os.path.join(os.path.dirname(__file__), 'cube.urdf')
+        startPosition = [0, -1 / 3.5 - 0.05, 1 / 3]
+        startOrientation = [np.pi,0,0]
+        startOrientationQuaternion = p.getQuaternionFromEuler(startOrientation)
         self.cube = p.loadURDF(f_name,
-                               startPosition,
+                               startPosition,  startOrientationQuaternion,
                                physicsClientId=client)
+        texture_path = os.path.join(os.path.dirname(__file__), 'cube_texture.jpg')
+        x = p.loadTexture(texture_path)
+        p.changeVisualShape(self.cube, -1, textureUniqueId=x)
 
     def get_ids(self):
         return self.cube, self.client
 
     def apply_action(self, action):
         pass
-    
+
     def get_observation(self):
-        # Modified cube to include velocity
+        """Returns 12 digit ndarray containing position (x,y,z), orientation in Euler angles (x,y,z), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)"""
         position, orientation = p.getBasePositionAndOrientation(self.cube)
         orientation = p.getEulerFromQuaternion(orientation)
-        velocityXYZ = p.getBaseVelocity(self.cube)[0]
-        
+        velocity, angular_velocity = p.getBaseVelocity(self.cube)
         position = np.array(position)
         orientation = np.array(orientation)
-        velocityXYZ = np.array(velocityXYZ)
+        velocity = np.array(velocity)
+        angular_velocity = np.array(angular_velocity)
 
-        return np.concatenate((position, orientation, velocityXYZ))
+        return np.concatenate((position, orientation, velocity, angular_velocity))

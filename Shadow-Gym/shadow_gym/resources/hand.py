@@ -6,8 +6,7 @@ import os
 class Hand:
     def __init__(self, client):
         self.client = client
-        f_name = os.path.join(os.path.dirname(__file__),
-                              'shadow_hand.urdf')
+        f_name = os.path.join(os.path.dirname(__file__),'shadow_hand.urdf')
 
         startPosition = [0, 0, 1/4]
         startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, 0])
