@@ -21,14 +21,14 @@ if os.path.exists(f"{models_dir}/{run_name}"):
 if os.path.exists(f"{logs_dir}/{run_name}"):
     raise Exception("Error: log folder already exists. Change run_name to prevent overriding existing log folder")
 
-env = gym.make("ShadowEnv-v0")
+env = gym.make("ShadowEnv-v0",GUI=False)
 if recurrent:
     model = RecurrentPPO(policy="MlpLstmPolicy",env=env,tensorboard_log=logs_dir,verbose=1)
 else:
     model = PPO(policy="MlpPolicy",env=env,tensorboard_log=logs_dir,verbose=0)
 
 saving_timesteps_interval = 50_000
-start_saving = 0
+start_saving = 500_000
 timesteps = 0
 while True:
     model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)

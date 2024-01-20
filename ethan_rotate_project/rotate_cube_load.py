@@ -7,9 +7,10 @@ import os
 import time
 
 recurrent = False
+num_evaluate = 100
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "9" + "-" + "shadowgym"
+run_name = "PPO" + "-" + "11" + "-" + "shadowgym"
 model_file = "2200000.zip"
 # Set up folders to store models and logs
 models_dir = os.path.join(os.getcwd(),'models')
@@ -18,7 +19,8 @@ model_path = f"{models_dir}/{run_name}/{model_file}"
 if not os.path.exists(model_path):
     raise Exception("Error: model not found")
 
-env = gym.make("ShadowEnv-v0")
+
+env = gym.make("ShadowEnv-v0",GUI=False)
 if recurrent:
     print("Rendering recurrentPPO model...")
     model = RecurrentPPO.load(model_path, env=env)
@@ -34,7 +36,9 @@ if recurrent:
 else:
     print("Running non recurrent PPO model")
     model = PPO.load(model_path,env=env)
-    while True:
+    total_success = 0
+    episode_count = 0
+    while episode_count < num_evaluate:
         done = False
         episode_reward = 0
         obs = env.reset()
@@ -42,8 +46,13 @@ else:
             action, _ = model.predict(obs)
             obs, reward, done, info = env.step(action)
             episode_reward += reward
-            time.sleep(1/60)
+            # time.sleep(1/60)
         print(f"episode_reward:{episode_reward}")
+        if info["success"]:
+            total_success += 1
+        episode_count += 1
+        print(f"total_success:{total_success} episodes:{episode_count} ratio:{total_success / episode_count}")
+
 
 
 

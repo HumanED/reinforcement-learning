@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
 
 # Changed by Ethan
-GUI = True
 discretize = True
 number_of_bins = 11
 
@@ -60,7 +59,10 @@ def calculate_angular_difference(orientation1, orientation2):
 class ShadowEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self):
+    def __init__(self,GUI=False):
+        """
+        :param GUI: `GUI=True` after training. `GUI=False` for during training
+        """
         if discretize:
             self.action_space = gym.spaces.MultiDiscrete([11] * 24)
         else:
@@ -94,7 +96,7 @@ class ShadowEnv(gym.Env):
 
         self.previous_rotation_to_target = 4
         self.target_q = p.getQuaternionFromEuler([0, 0, 0])
-        self.STEP_LIMIT = 600  # Given a timestep is 1/30 seconds.
+        self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
 
         self.reset()
 
@@ -112,7 +114,7 @@ class ShadowEnv(gym.Env):
 
         cube_orientation_q = p.getQuaternionFromEuler(cube_observation[3:6])
         observation = np.concatenate((hand_observation, cube_observation))
-
+        info = {"success":False}
         # Reward calculations
         rotation_to_target = calculate_angular_difference(self.target_q, cube_orientation_q)
         reward = self.previous_rotation_to_target - rotation_to_target
@@ -121,14 +123,15 @@ class ShadowEnv(gym.Env):
             # We are less than 15 degrees to the target
             reward = 2500
             self.done = True
+            info["success"] = True
         if cube_observation[2] < 0.05:
             reward = -100
             self.done = True
-        if self.num_steps > self.STEP_LIMIT:  # 600
+        if self.num_steps > self.STEP_LIMIT:  # 300
             self.done = True
         self.previous_rotation_to_target = rotation_to_target
 
-        return observation, reward, self.done, dict()
+        return observation, reward, self.done, info
 
     def reset(self):
         p.resetSimulation(self.client)
