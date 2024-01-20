@@ -41,20 +41,6 @@ hand_motion_high = np.concatenate((wrist_high, index_high, middle_high, ring_hig
 hand_velocity_high = np.array([np.inf] * 96)
 hand_velocity_low = np.array([-np.inf] * 96)
 
-
-# def get_axis_angle_difference(orientation1, orientation2):
-#     """Both orientations must use Quaternions"""
-#     rot1 = Rotation.from_quat(orientation1)
-#     rot2 = Rotation.from_quat(orientation2)
-#
-#     # Calculate angular difference (radians) between two rotations
-#     # .inv() is transform of the rotation matrix
-#     angular_difference = rot1.inv() * rot2
-#
-#     #  axis-angle representation of angular difference
-#     axis_angle = angular_difference.as_rotvec()
-#     return axis_angle
-
 def calculate_angular_difference(orientation1, orientation2):
     """Both orientations must use Quaternions"""
     rot1 = Rotation.from_quat(orientation1)

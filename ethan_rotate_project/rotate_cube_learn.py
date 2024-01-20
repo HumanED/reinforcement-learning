@@ -12,10 +12,10 @@ Trains a PPO model, saves models at defined intervals and record training perfor
 recurrent = False
 # Run name should have model, unique number, and optionally a description
 # 9 is the first discretization (NOTEME)
-run_name = "PPO" + "-" + "9" + "-" + "shadowgym"
+run_name = "PPO" + "-" + "11" + "-" + "shadowgym"
 # Set up folders to store models and logs
-models_dir = os.path.join(os.getcwd(),'models')
-logs_dir = os.path.join(os.getcwd(),'logs')
+models_dir = os.path.join(os.path.dirname(__file__),'models')
+logs_dir = os.path.join(os.path.dirname(__file__),'logs')
 if os.path.exists(f"{models_dir}/{run_name}"):
     raise Exception("Error: model folder already exists. Change run_name to prevent overriding existing model folder")
 if os.path.exists(f"{logs_dir}/{run_name}"):
