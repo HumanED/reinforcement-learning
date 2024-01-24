@@ -7,7 +7,7 @@ class Cube:
     def __init__(self, client):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'cube.urdf')
-        startPosition = [0, -1 / 3.5, 1 / 3]
+        startPosition = [0, -0.363, 0.305]
         startOrientation = [np.pi,0,0]
         startOrientationQuaternion = p.getQuaternionFromEuler(startOrientation)
         self.cube = p.loadURDF(f_name,

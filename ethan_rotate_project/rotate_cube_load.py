@@ -7,7 +7,7 @@ import os
 import time
 
 recurrent = False
-num_evaluate = 100
+num_evaluate = 1000
 
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "11" + "-" + "shadowgym"
@@ -38,7 +38,11 @@ else:
     model = PPO.load(model_path,env=env)
     total_success = 0
     episode_count = 0
-    while episode_count < num_evaluate:
+    if num_evaluate == -1:
+        run_forever=True
+    else:
+        run_forever=False
+    while episode_count < num_evaluate or run_forever:
         done = False
         episode_reward = 0
         obs = env.reset()

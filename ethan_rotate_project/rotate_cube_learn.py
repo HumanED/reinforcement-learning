@@ -12,7 +12,7 @@ Trains a PPO model, saves models at defined intervals and record training perfor
 recurrent = False
 # Run name should have model, unique number, and optionally a description
 # 9 is the first discretization (NOTEME)
-run_name = "PPO" + "-" + "11" + "-" + "shadowgym"
+run_name = "PPO" + "-" + "12" + "-" + "shadowgym"
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__),'models')
 logs_dir = os.path.join(os.path.dirname(__file__),'logs')

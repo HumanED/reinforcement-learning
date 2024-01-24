@@ -4,6 +4,9 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 import os
 import gym
 import shadow_gym
+"""
+NOT YET FUNCTIONING 24/1/2024
+"""
 
 run_name = "PPO" + "-" + "6" + "-" + "shadowgym"
 run_dir = os.path.join(os.getcwd(), 'models', run_name)

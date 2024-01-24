@@ -29,14 +29,15 @@ class Hand:
                                physicsClientId=client)
 
 c = Cube(client)
+cube_index = c.cube
 h = Hand(client)
-cube_x = p.addUserDebugParameter("cube_x",-2,2,cubeStartPosition[0])
-cube_y = p.addUserDebugParameter("cube_y",-2,2,cubeStartPosition[1])
-cube_z = p.addUserDebugParameter("cube_z",-2,2,cubeStartPosition[2])
+cube_x = p.addUserDebugParameter("cube_x",-0.5,0.5,cubeStartPosition[0])
+cube_y = p.addUserDebugParameter("cube_y",-0.5,0.5,cubeStartPosition[1])
+cube_z = p.addUserDebugParameter("cube_z",-0.5,0.5,cubeStartPosition[2])
 while True:
     x = p.readUserDebugParameter(cube_x)
     y = p.readUserDebugParameter(cube_y)
     z = p.readUserDebugParameter(cube_z)
-    p.resetBasePositionAndOrientation(c,posObj=[x,y,z], ornObj=p.getQuaternionFromEuler(cubeOrientation))
+    p.resetBasePositionAndOrientation(cube_index,posObj=[x,y,z], ornObj=p.getQuaternionFromEuler(cubeOrientation))
     p.stepSimulation()
     time.sleep(1/60)
