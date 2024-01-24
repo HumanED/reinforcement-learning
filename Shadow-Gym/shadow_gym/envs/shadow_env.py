@@ -13,6 +13,8 @@ number_of_bins = 11
 
 wrist_low = np.array([-0.489, -0.785])
 wrist_high = np.array([0.140, 0.524])
+wrist_low = np.array([-0, -0])
+wrist_high = np.array([0., 0.])
 index_low = np.array([-0.349, 0, 0, 0])
 index_high = np.array([0.349, 1.571, 1.571, 1.571])
 middle_low = np.array([-0.349, 0, 0, 0])
