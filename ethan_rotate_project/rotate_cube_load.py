@@ -7,11 +7,11 @@ import os
 import time
 
 recurrent = False
-num_evaluate = 1000
+num_evaluate = -1 # Set num_evaluate to -1 to enable rendering and just view the project
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "11" + "-" + "shadowgym"
-model_file = "2200000.zip"
+run_name = "PPO" + "-" + "12" + "-" + "shadowgym"
+model_file = "2800000.zip"
 # Set up folders to store models and logs
 models_dir = os.path.join(os.getcwd(),'models')
 logs_dir = os.path.join(os.getcwd(),'logs')
@@ -19,8 +19,10 @@ model_path = f"{models_dir}/{run_name}/{model_file}"
 if not os.path.exists(model_path):
     raise Exception("Error: model not found")
 
-
-env = gym.make("ShadowEnv-v0",GUI=False)
+GUI=False
+if num_evaluate == -1:
+    GUI = True
+env = gym.make("ShadowEnv-v0",GUI=GUI)
 if recurrent:
     print("Rendering recurrentPPO model...")
     model = RecurrentPPO.load(model_path, env=env)
