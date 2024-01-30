@@ -13,8 +13,6 @@ number_of_bins = 11
 
 wrist_low = np.array([-0.489, -0.785])
 wrist_high = np.array([0.140, 0.524])
-wrist_low = np.array([-0, -0])
-wrist_high = np.array([0., 0.])
 index_low = np.array([-0.349, 0, 0, 0])
 index_high = np.array([0.349, 1.571, 1.571, 1.571])
 middle_low = np.array([-0.349, 0, 0, 0])
@@ -74,11 +72,11 @@ class ShadowEnv(gym.Env):
             )
 
         self.observation_space = gym.spaces.box.Box(
-            # Remeber cube is 12 digit ndarray containing position (x,y,z), orientation in Euler angles (x,y,z), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
+            # Remeber cube is 12 digit ndarray containing position (x,y,z), orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
             low=np.concatenate((hand_motion_low, hand_velocity_low, np.array(
-                [-10, -10, -10, -np.pi, -np.pi, -np.pi, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]))),
+                [-10, -10, -10, -1, -1, -1, -1, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]))),
             high=np.concatenate((hand_motion_high, hand_velocity_high, np.array(
-                [10, 10, 10, np.pi, np.pi, np.pi, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])))
+                [10, 10, 10, 1, 1, 1, 1, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])))
         )
 
         self.np_random, _ = gym.utils.seeding.np_random()
@@ -114,7 +112,7 @@ class ShadowEnv(gym.Env):
         hand_observation = self.hand.get_observation()
         cube_observation = self.cube.get_observation()
 
-        cube_orientation_q = p.getQuaternionFromEuler(cube_observation[3:6])
+        cube_orientation_q = cube_observation[3:7]
         observation = np.concatenate((hand_observation, cube_observation))
         info = {"success":False}
         # Reward calculations

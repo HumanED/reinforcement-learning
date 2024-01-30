@@ -25,12 +25,11 @@ class Cube:
 
     def get_observation(self):
         """Returns 12 digit ndarray containing position (x,y,z), orientation in Euler angles (x,y,z), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)"""
-        position, orientation = p.getBasePositionAndOrientation(self.cube)
-        orientation = p.getEulerFromQuaternion(orientation)
+        position, orientation_quaternion = p.getBasePositionAndOrientation(self.cube)
         velocity, angular_velocity = p.getBaseVelocity(self.cube)
         position = np.array(position)
-        orientation = np.array(orientation)
+        orientation_quaternion = np.array(orientation_quaternion)
         velocity = np.array(velocity)
         angular_velocity = np.array(angular_velocity)
 
-        return np.concatenate((position, orientation, velocity, angular_velocity))
+        return np.concatenate((position, orientation_quaternion, velocity, angular_velocity))

@@ -10,11 +10,11 @@ recurrent = False
 num_evaluate = -1 # Set num_evaluate to -1 to enable rendering and just view the project
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "12" + "-" + "shadowgym"
-model_file = "2800000.zip"
+run_name = "PPO" + "-" + "13" + "-" + "shadowgym"
+model_file = "500000.zip"
 # Set up folders to store models and logs
-models_dir = os.path.join(os.getcwd(),'models')
-logs_dir = os.path.join(os.getcwd(),'logs')
+models_dir = os.path.join(os.path.dirname(__file__),'models')
+logs_dir = os.path.join(os.path.dirname(__file__),'logs')
 model_path = f"{models_dir}/{run_name}/{model_file}"
 if not os.path.exists(model_path):
     raise Exception("Error: model not found")
@@ -52,7 +52,8 @@ else:
             action, _ = model.predict(obs)
             obs, reward, done, info = env.step(action)
             episode_reward += reward
-            # time.sleep(1/60)
+            if num_evaluate == -1:
+                time.sleep(1/60)
         print(f"episode_reward:{episode_reward}")
         if info["success"]:
             total_success += 1
