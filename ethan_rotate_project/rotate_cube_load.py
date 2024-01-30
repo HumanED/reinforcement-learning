@@ -1,20 +1,27 @@
 from stable_baselines3 import PPO
-from sb3_contrib import RecurrentPPO
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 import shadow_gym
 import numpy as np
 import gym
 import os
 import time
 
+# SETTINGS
 recurrent = False
-num_evaluate = -1 # Set num_evaluate to -1 to enable rendering and just view the project
-
+vectorized_env = True
+normalized_env = True
+# Set num_evaluate to -1 to enable rendering and just view the project
+num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "13" + "-" + "shadowgym"
-model_file = "500000.zip"
+run_name = "PPO" + "-" + "14" + "-" + "shadowgym"
+model_file = "8000.zip"
+normalize_stats_file = "8000.pkl"
+
+
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__),'models')
 logs_dir = os.path.join(os.path.dirname(__file__),'logs')
+normalize_stats = os.path.join(os.path.dirname(__file__), 'normalize_stats',run_name,normalize_stats_file)
 model_path = f"{models_dir}/{run_name}/{model_file}"
 if not os.path.exists(model_path):
     raise Exception("Error: model not found")
@@ -22,8 +29,18 @@ if not os.path.exists(model_path):
 GUI=False
 if num_evaluate == -1:
     GUI = True
-env = gym.make("ShadowEnv-v0",GUI=GUI)
+
+if vectorized_env:
+    env = DummyVecEnv([lambda : gym.make("ShadowEnv-v0",GUI=GUI)])
+    if normalized_env:
+        env = VecNormalize.load(normalize_stats, env)
+        env.training = False
+        env.norm_reward = False
+else:
+    env = gym.make("ShadowEnv-v0", GUI=GUI)
+
 if recurrent:
+    from sb3_contrib import RecurrentPPO
     print("Rendering recurrentPPO model...")
     model = RecurrentPPO.load(model_path, env=env)
     num_envs = 1
@@ -50,11 +67,15 @@ else:
         obs = env.reset()
         while not done:
             action, _ = model.predict(obs)
+            print(env.step(action))
             obs, reward, done, info = env.step(action)
             episode_reward += reward
             if num_evaluate == -1:
                 time.sleep(1/60)
         print(f"episode_reward:{episode_reward}")
+        if vectorized_env:
+            # In vectorized environments, a list of infos is returned. We only want the first info.
+            info = info[0]
         if info["success"]:
             total_success += 1
         episode_count += 1
