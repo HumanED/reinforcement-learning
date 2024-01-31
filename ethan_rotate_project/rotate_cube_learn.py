@@ -1,5 +1,6 @@
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.callbacks import BaseCallback
 
 import os
 import shadow_gym
@@ -16,9 +17,9 @@ recurrent = False
 vectorized_env = True
 normalized_env = True
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "14" + "-" + "shadowgym"
-saving_timesteps_interval = 1000
-start_saving = 0
+run_name = "PPO" + "-" + "15" + "-" + "shadowgym"
+saving_timesteps_interval = 50_000
+start_saving = 500_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
@@ -32,11 +33,29 @@ if os.path.exists(f"{normalize_stats}/{run_name}"):
     raise Exception("Error: normalize_stats folder already exists. Change run_name")
 os.makedirs(f"{normalize_stats}/{run_name}")
 
+class TensorboardCallback(BaseCallback):
+    def __init__(self, verbose=1):
+        super(TensorboardCallback, self).__init__(verbose)
+        self.episode_length = 0
+        self.episode_reward = 0
+    def _on_rollout_end(self) -> None:
+        self.episode_length = self.training_env.get_attr("num_steps")[0]
+        self.logger.record("rollout/ep_len_mean",self.episode_length)
+        self.logger.record("rollout/ep_rew_mean", self.episode_reward / self.episode_length)
+        # Reset vars
+        self.episode_length = 0
+        self.episode_reward = 0
 
+    def _on_step(self) -> bool:
+        self.episode_reward += self.training_env.get_attr("reward")[0]
+        return True
+
+rewards_callback = None
 if vectorized_env:
     env = DummyVecEnv([lambda: gym.make("ShadowEnv-v0", GUI=False)])
     if normalized_env:
         env = VecNormalize(env)
+    rewards_callback = TensorboardCallback()
 else:
     env = gym.make("ShadowEnv-v0", GUI=False)
 
@@ -49,7 +68,7 @@ else:
 
 timesteps = 0
 while True:
-    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
+    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False, callback=rewards_callback)
     timesteps += saving_timesteps_interval
     if timesteps >= start_saving:
         model.save(f"{models_dir}/{run_name}/{timesteps}")

@@ -14,8 +14,8 @@ normalized_env = True
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "14" + "-" + "shadowgym"
-model_file = "8000.zip"
-normalize_stats_file = "8000.pkl"
+model_file = "1800000.zip"
+normalize_stats_file = "1800000.pkl"
 
 
 # Set up folders to store models and logs
@@ -67,12 +67,11 @@ else:
         obs = env.reset()
         while not done:
             action, _ = model.predict(obs)
-            print(env.step(action))
             obs, reward, done, info = env.step(action)
             episode_reward += reward
             if num_evaluate == -1:
                 time.sleep(1/60)
-        print(f"episode_reward:{episode_reward}")
+        # print(f"episode_reward:{episode_reward}")
         if vectorized_env:
             # In vectorized environments, a list of infos is returned. We only want the first info.
             info = info[0]
