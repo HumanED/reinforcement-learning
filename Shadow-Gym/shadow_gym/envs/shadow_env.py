@@ -63,6 +63,7 @@ class ShadowEnv(gym.Env):
         """
         :param GUI: `GUI=True` after training. `GUI=False` for during training
         """
+        self.reward = None
         if discretize:
             self.action_space = gym.spaces.MultiDiscrete([11] * 24)
         else:
@@ -117,21 +118,21 @@ class ShadowEnv(gym.Env):
         info = {"success":False}
         # Reward calculations
         rotation_to_target = calculate_angular_difference(self.target_q, cube_orientation_q)
-        reward = self.previous_rotation_to_target - rotation_to_target
+        self.reward = self.previous_rotation_to_target - rotation_to_target
 
         if rotation_to_target < 0.26:
             # We are less than 15 degrees to the target
-            reward = 2500
+            self.reward = 2500
             self.done = True
             info["success"] = True
         if cube_observation[2] < 0.05:
-            reward = -100
+            self.reward = -100
             self.done = True
         if self.num_steps > self.STEP_LIMIT:  # 300
             self.done = True
         self.previous_rotation_to_target = rotation_to_target
 
-        return observation, reward, self.done, info
+        return observation, self.reward, self.done, info
 
     def reset(self):
         p.resetSimulation(self.client)
