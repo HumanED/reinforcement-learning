@@ -14,8 +14,8 @@ Trains a PPO model, saves models at defined intervals and record training perfor
 # SETTINGS
 # RecurrentPPO or PPO
 recurrent = False
-vectorized_env = True
-normalized_env = True
+vectorized_env = False
+normalized_env = False
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "15" + "-" + "shadowgym"
 saving_timesteps_interval = 50_000
@@ -39,6 +39,7 @@ class TensorboardCallback(BaseCallback):
         self.episode_length = 0
         self.episode_reward = 0
     def _on_rollout_end(self) -> None:
+        # Error: _on_rollout and episodes are different time periods.
         self.episode_length = self.training_env.get_attr("num_steps")[0]
         self.logger.record("rollout/ep_len_mean",self.episode_length)
         self.logger.record("rollout/ep_rew_mean", self.episode_reward / self.episode_length)
