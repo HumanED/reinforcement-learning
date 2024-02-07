@@ -16,22 +16,25 @@ Trains a PPO model, saves models at defined intervals and record training perfor
 recurrent = False
 vectorized_env = False
 normalized_env = False
+start_from_existing = True
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "15" + "-" + "shadowgym"
+existing_model_file = "2150000" # no need .zip extension
 saving_timesteps_interval = 50_000
-start_saving = 500_000
+start_saving = 1_000_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
 logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
 normalize_stats = os.path.join(os.path.dirname(__file__), 'normalize_stats')
-if os.path.exists(f"{models_dir}/{run_name}"):
+if not start_from_existing and os.path.exists(f"{models_dir}/{run_name}"):
     raise Exception("Error: model folder already exists. Change run_name to prevent overriding existing model folder")
-if os.path.exists(f"{logs_dir}/{run_name}"):
+if not start_from_existing and os.path.exists(f"{logs_dir}/{run_name}"):
     raise Exception("Error: log folder already exists. Change run_name to prevent overriding existing log folder")
-if os.path.exists(f"{normalize_stats}/{run_name}"):
+if not start_from_existing and os.path.exists(f"{normalize_stats}/{run_name}"):
     raise Exception("Error: normalize_stats folder already exists. Change run_name")
-os.makedirs(f"{normalize_stats}/{run_name}")
+if normalized_env:
+    os.makedirs(f"{normalize_stats}/{run_name}")
 
 class TensorboardCallback(BaseCallback):
     def __init__(self, verbose=1):
@@ -62,10 +65,15 @@ else:
 
 if recurrent:
     from sb3_contrib import RecurrentPPO
-
-    model = RecurrentPPO(policy="MlpLstmPolicy", env=env, tensorboard_log=logs_dir, verbose=1)
+    if start_from_existing:
+        model = RecurrentPPO.load(os.path.join(models_dir,existing_model_file))
+    else:
+        model = RecurrentPPO(policy="MlpLstmPolicy", env=env, tensorboard_log=logs_dir, verbose=1)
 else:
-    model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, verbose=0)
+    if start_from_existing:
+        model = PPO.load(os.path.join(models_dir,existing_model_file))
+    else:
+        model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, verbose=0)
 
 timesteps = 0
 while True:

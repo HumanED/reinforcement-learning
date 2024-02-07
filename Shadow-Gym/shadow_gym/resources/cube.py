@@ -8,10 +8,12 @@ class Cube:
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'cube.urdf')
         startPosition = [0, -0.363, 0.305]
-        startOrientation = [np.pi,0,0]
+        startOrientation = [np.random.randint(0, 3) * (np.pi / 2),
+                            np.random.randint(0, 3) * (np.pi / 2),
+                            np.random.randint(0, 3) * (np.pi / 2)]
         startOrientationQuaternion = p.getQuaternionFromEuler(startOrientation)
         self.cube = p.loadURDF(f_name,
-                               startPosition,  startOrientationQuaternion,
+                               startPosition, startOrientationQuaternion,
                                physicsClientId=client)
         texture_path = os.path.join(os.path.dirname(__file__), 'cube_texture.jpg')
         x = p.loadTexture(texture_path)
