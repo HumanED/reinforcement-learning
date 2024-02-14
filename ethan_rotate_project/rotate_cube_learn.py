@@ -63,15 +63,18 @@ if vectorized_env:
 else:
     env = gym.make("ShadowEnv-v0", GUI=False)
 
+full_model_path = None
+if start_from_existing:
+    full_model_path = os.path.join(models_dir, run_name, existing_model_file)
 if recurrent:
     from sb3_contrib import RecurrentPPO
     if start_from_existing:
-        model = RecurrentPPO.load(os.path.join(models_dir,existing_model_file))
+        model = RecurrentPPO.load(full_model_path, env)
     else:
         model = RecurrentPPO(policy="MlpLstmPolicy", env=env, tensorboard_log=logs_dir, verbose=1)
 else:
     if start_from_existing:
-        model = PPO.load(os.path.join(models_dir,existing_model_file))
+        model = PPO.load(full_model_path, env)
     else:
         model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, verbose=0)
 

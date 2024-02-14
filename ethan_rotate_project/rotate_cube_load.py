@@ -14,7 +14,7 @@ normalized_env = False
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "15" + "-" + "shadowgym"
-model_file = "2150000.zip"
+model_file = "4650000.zip"
 normalize_stats_file = "1800000.pkl"
 
 
