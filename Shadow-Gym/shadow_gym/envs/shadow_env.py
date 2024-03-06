@@ -41,20 +41,20 @@ hand_velocity_high = np.array([np.inf] * 96)
 hand_velocity_low = np.array([-np.inf] * 96)
 
 def calculate_angular_difference(orientation1, orientation2):
-    """Both orientations must use Quaternions"""
+    """
+    Calculates angular difference in radians between two quaternions
+    :param orientation1: List[int]
+    :param orientation2: List[int]
+    """
     rot1 = Rotation.from_quat(orientation1)
     rot2 = Rotation.from_quat(orientation2)
-    # Calculate angular difference (radians) between two rotations
     # .inv() is transform of the rotation matrix
     angular_difference = rot1.inv() * rot2
-
     #  axis-angle representation of angular difference
     axis_angle = angular_difference.as_rotvec()
-
     # Convert angular difference into axis-angle representation
     rotation_magnitude = np.linalg.norm(axis_angle)
     return rotation_magnitude
-
 
 class ShadowEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -65,6 +65,7 @@ class ShadowEnv(gym.Env):
         """
         self.reward = None
         if discretize:
+            # 11 bins for each of the 24 actions
             self.action_space = gym.spaces.MultiDiscrete([11] * 24)
         else:
             self.action_space = gym.spaces.box.Box(
@@ -73,7 +74,8 @@ class ShadowEnv(gym.Env):
             )
 
         self.observation_space = gym.spaces.box.Box(
-            # Remeber cube is 12 digit ndarray containing position (x,y,z), orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
+            # Cube observation is 12 digit ndarray with position (x,y,z),
+            # orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
             low=np.concatenate((hand_motion_low, hand_velocity_low, np.array(
                 [-10, -10, -10, -1, -1, -1, -1, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]))),
             high=np.concatenate((hand_motion_high, hand_velocity_high, np.array(
@@ -96,7 +98,7 @@ class ShadowEnv(gym.Env):
         self.num_steps = 0
 
         self.previous_rotation_to_target = 4
-        self.target_q = p.getQuaternionFromEuler([0, 0, 0])
+        self.target_quaternion = p.getQuaternionFromEuler([0, 0, 0])
         self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
 
         self.reset()
@@ -104,7 +106,7 @@ class ShadowEnv(gym.Env):
     def step(self, action):
         self.num_steps += 1
         if discretize:
-            # Convert discrete number into median of the bins
+            # Convert discrete action choice from the AI to a continuous action for the motor.
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
 
         self.hand.apply_action(action)
@@ -112,12 +114,12 @@ class ShadowEnv(gym.Env):
 
         hand_observation = self.hand.get_observation()
         cube_observation = self.cube.get_observation()
-
         cube_orientation_q = cube_observation[3:7]
         observation = np.concatenate((hand_observation, cube_observation))
+
         info = {"success":False}
         # Reward calculations
-        rotation_to_target = calculate_angular_difference(self.target_q, cube_orientation_q)
+        rotation_to_target = calculate_angular_difference(self.target_quaternion, cube_orientation_q)
         self.reward = self.previous_rotation_to_target - rotation_to_target
 
         if rotation_to_target < 0.26:
