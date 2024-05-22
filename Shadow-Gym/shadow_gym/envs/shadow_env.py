@@ -6,6 +6,7 @@ from shadow_gym.resources.plane import Plane
 from shadow_gym.resources.cube import Cube
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
+from pyquaternion import Quaternion
 
 # Changed by Ethan
 discretize = True
@@ -74,12 +75,12 @@ class ShadowEnv(gym.Env):
             )
 
         self.observation_space = gym.spaces.box.Box(
-            # Cube observation is 12 digit ndarray with position (x,y,z),
+            # Cube observation is 7 digit ndarray with position (x,y,z) and relative quaternion (w,x,y,z),
             # orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
             low=np.concatenate((hand_motion_low, hand_velocity_low, np.array(
-                [-10, -10, -10, -1, -1, -1, -1, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]))),
+                [-np.inf, -np.inf, -np.inf, -1,-1,-1,-1]))),
             high=np.concatenate((hand_motion_high, hand_velocity_high, np.array(
-                [10, 10, 10, 1, 1, 1, 1, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])))
+                [np.inf, np.inf, np.inf,1, 1, 1, 1])))
         )
 
         self.np_random, _ = gym.utils.seeding.np_random()
@@ -106,6 +107,30 @@ class ShadowEnv(gym.Env):
         self.episode_counter = 0
         self.cubeStartOrientation = []
         self.reset()
+    def get_cube_observation(self, target_orientation_q: list[int]):
+        """Returns 7 digit ndarray containing position (x,y,z), relative orientation quaternion (w, x, y, z)"""
+        position, orientation_quaternion = p.getBasePositionAndOrientation(self.cube.cube_body)
+        q1 = Quaternion(target_orientation_q)
+        q2 = Quaternion(orientation_quaternion)
+        relative_q = q1 * q2.inverse
+        relative_q = list(relative_q)
+        return np.concatenate((position, relative_q))
+
+    def get_hand_observation(self):
+        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30]
+        joint_position = []
+
+        # Adding the velocities (x,y,z) of each link
+        num_links = p.getNumJoints(self.hand.hand_body)
+        link_velocity = []
+        for i in range(num_links):
+            link_velocity.extend(p.getLinkState(self.hand.hand_body,i,computeLinkVelocity=True)[7])
+
+        for joint_id in joints:
+            joint_position.append(p.getJointState(self.hand.hand_body, joint_id)[0])
+
+
+        return np.array(joint_position + link_velocity)
 
     def step(self, action):
         self.num_steps += 1
@@ -116,23 +141,25 @@ class ShadowEnv(gym.Env):
         self.hand.apply_action(action)
         p.stepSimulation()
 
-        hand_observation = self.hand.get_observation()
-        cube_observation = self.cube.get_observation()
-        cube_orientation_q = cube_observation[3:7]
+        hand_observation = self.get_hand_observation()
+        cube_observation = self.get_cube_observation(self.target_quaternion)
+
         observation = np.concatenate((hand_observation, cube_observation))
 
         info = {"success":False}
         # Reward calculations
+        cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
         rotation_to_target = calculate_angular_difference(self.target_quaternion, cube_orientation_q)
         self.reward = self.previous_rotation_to_target - rotation_to_target
 
-        if rotation_to_target < 0.26:
-            # We are less than 15 degrees to the target
-            self.reward = 2500
+        if rotation_to_target < 0.4:
+            # We are less than 0.4 radians (23 degrees to target)
+            self.reward = 5
             self.done = True
             info["success"] = True
         if cube_observation[2] < 0.05:
-            self.reward = -100
+            # Cube is dropped
+            self.reward = -20
             self.done = True
         if self.num_steps > self.STEP_LIMIT:  # 300
             self.done = True
@@ -164,8 +191,8 @@ class ShadowEnv(gym.Env):
         self.done = False
         self.num_steps = 0
 
-        hand_observation = self.hand.get_observation()
-        cube_observation = self.cube.get_observation()
+        hand_observation = self.get_hand_observation()
+        cube_observation = self.get_cube_observation(self.target_quaternion)
 
         observation = np.concatenate((hand_observation, cube_observation))
         return observation

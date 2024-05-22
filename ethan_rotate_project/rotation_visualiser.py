@@ -4,9 +4,10 @@ import time
 import math
 import numpy as np
 from scipy.spatial.transform import Rotation
+from pyquaternion import Quaternion
 target_dir = r"C:\Users\ethan\Documents\Edinburgh Uni\HumanED\HumanED Github\reinforcement-learning\Shadow-Gym\shadow_gym\resources"
 client = p.connect(p.GUI)
-urdf_path = os.path.join(target_dir,'cube.urdf')
+urdf_path = os.path.join(target_dir,'cube_body.urdf')
 texture_path = os.path.join(target_dir,'cube_texture.jpg')
 start_position = [0.5, 0.5, 0.5]
 start_orientation = [0, 0, 0]
@@ -34,7 +35,14 @@ def calculate_angular_difference(orientation1, orientation2):
     rotation_magnitude = np.linalg.norm(axis_angle)
 
     return rotation_magnitude
-
+def quaternion_conjugate(q):
+    q = Quaternion(q)
+    return list(q.inverse)
+def multiply_quaternion(q1, q2):
+    q1 = Quaternion(q1)
+    q2 = Quaternion(q2)
+    return list(q1 * q2)
+# Note: The x, y, z in Quaternions are not directly equivalent to Euler x, y, z
 while True:
     """
     xyz do correspond to rgb
@@ -48,6 +56,7 @@ while True:
     p.resetBasePositionAndOrientation(cube,posObj=start_position, ornObj=quaternion)
     current_orientation = p.getBasePositionAndOrientation(cube)[1]
     angular_difference = calculate_angular_difference(target_orientation_quaternion, current_orientation )
-    print(angular_difference)
+    q_relative = multiply_quaternion(target_orientation_quaternion, quaternion_conjugate(current_orientation))
+    print(round(angular_difference,2), list(map(lambda x: round(x,2),current_orientation)), list(map(lambda x: round(x,2),q_relative)))
     p.stepSimulation(client)
-    time.sleep(1/60)
+    time.sleep(1/10)

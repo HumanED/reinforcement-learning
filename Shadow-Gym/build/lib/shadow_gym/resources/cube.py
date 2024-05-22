@@ -8,7 +8,7 @@ class Cube:
     def __init__(self, client):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__),
-                              'cube.urdf')
+                              'cube_body.urdf')
         # Default start position.
         # startPosition = [0, -1/3.5, 1/3]
         # Start position over the fingers. Same height as default
@@ -27,7 +27,7 @@ class Cube:
         pass
     
     def get_observation(self):
-        # Modified cube to include velocity
+        # Modified cube_body to include velocity
         position, orientation = p.getBasePositionAndOrientation(self.cube)
         orientation = p.getEulerFromQuaternion(orientation)
         velocityXYZ = p.getBaseVelocity(self.cube)[0]

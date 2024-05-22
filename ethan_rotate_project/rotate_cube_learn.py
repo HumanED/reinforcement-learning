@@ -20,7 +20,7 @@ start_from_existing = False
 existing_model_file = "" # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "16" + "-" + "shadowgym"
+run_name = "PPO" + "-" + "17" + "-" + "shadowgym"
 saving_timesteps_interval = 50_000
 start_saving = 1_000_000
 
