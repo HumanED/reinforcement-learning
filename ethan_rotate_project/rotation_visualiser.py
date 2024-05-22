@@ -1,4 +1,4 @@
-import os
+import os, random
 import pybullet as p
 import time
 import math
@@ -7,11 +7,15 @@ from scipy.spatial.transform import Rotation
 from pyquaternion import Quaternion
 target_dir = r"C:\Users\ethan\Documents\Edinburgh Uni\HumanED\HumanED Github\reinforcement-learning\Shadow-Gym\shadow_gym\resources"
 client = p.connect(p.GUI)
-urdf_path = os.path.join(target_dir,'cube_body.urdf')
+urdf_path = os.path.join(target_dir,'cube.urdf')
 texture_path = os.path.join(target_dir,'cube_texture.jpg')
 start_position = [0.5, 0.5, 0.5]
+# random_orientation_euler = (random.randint(-1, 1) * np.pi / 2,
+#                             random.randint(-1, 1) * np.pi / 2,
+#                             random.randint(-1, 1) * np.pi / 2)
+# print(random_orientation_euler)
 start_orientation = [0, 0, 0]
-cube = p.loadURDF(urdf_path, basePosition=start_position)
+cube = p.loadURDF(urdf_path, basePosition=start_position, baseOrientation=p.getQuaternionFromEuler(start_orientation))
 texture = p.loadTexture(texture_path)
 p.changeVisualShape(objectUniqueId=cube, linkIndex=-1, textureUniqueId=texture)
 x_param = p.addUserDebugParameter(paramName="x", rangeMin=-2*math.pi, rangeMax=2*math.pi,startValue=0)
@@ -48,15 +52,15 @@ while True:
     xyz do correspond to rgb
     the eular angles are relative to global orientation
     """
-    x_rotation = p.readUserDebugParameter(x_param)
-    y_rotation = p.readUserDebugParameter(y_param)
-    z_rotation = p.readUserDebugParameter(z_param)
-    euler = [x_rotation, y_rotation, z_rotation]
-    quaternion = p.getQuaternionFromEuler(euler)
-    p.resetBasePositionAndOrientation(cube,posObj=start_position, ornObj=quaternion)
-    current_orientation = p.getBasePositionAndOrientation(cube)[1]
-    angular_difference = calculate_angular_difference(target_orientation_quaternion, current_orientation )
-    q_relative = multiply_quaternion(target_orientation_quaternion, quaternion_conjugate(current_orientation))
-    print(round(angular_difference,2), list(map(lambda x: round(x,2),current_orientation)), list(map(lambda x: round(x,2),q_relative)))
+    # x_rotation = p.readUserDebugParameter(x_param)
+    # y_rotation = p.readUserDebugParameter(y_param)
+    # z_rotation = p.readUserDebugParameter(z_param)
+    # euler = [x_rotation, y_rotation, z_rotation]
+    # quaternion = p.getQuaternionFromEuler(euler)
+    # p.resetBasePositionAndOrientation(cube,posObj=start_position, ornObj=quaternion)
+    # current_orientation = p.getBasePositionAndOrientation(cube)[1]
+    # angular_difference = calculate_angular_difference(target_orientation_quaternion, current_orientation )
+    # q_relative = multiply_quaternion(target_orientation_quaternion, quaternion_conjugate(current_orientation))
+    # print(round(angular_difference,2), list(map(lambda x: round(x,2),current_orientation)), list(map(lambda x: round(x,2),q_relative)))
     p.stepSimulation(client)
     time.sleep(1/10)

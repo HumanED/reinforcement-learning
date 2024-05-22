@@ -4,11 +4,10 @@ import numpy as np
 from pyquaternion import Quaternion
 
 class Cube:
-    def __init__(self, client, start_orientation):
+    def __init__(self, client, start_orientation_q):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'cube.urdf')
         start_position = [0, -0.363, 0.305]
-        start_orientation_q = p.getQuaternionFromEuler(start_orientation)
         self.cube_body = p.loadURDF(f_name,
                                     start_position, start_orientation_q,
                                     physicsClientId=client)

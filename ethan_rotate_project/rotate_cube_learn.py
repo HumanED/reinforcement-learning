@@ -20,7 +20,7 @@ start_from_existing = False
 existing_model_file = "" # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "17" + "-" + "shadowgym"
+run_name = "PPO" + "-" + "16" + "-" + "shadowgym"
 saving_timesteps_interval = 50_000
 start_saving = 1_000_000
 
@@ -81,7 +81,7 @@ else:
 
 timesteps = 0
 while True:
-    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
+    model.learn(1000, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
     if timesteps >= start_saving:
         model.save(f"{models_dir}/{run_name}/{timesteps}")
