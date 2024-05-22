@@ -16,10 +16,11 @@ Trains a PPO model, saves models at defined intervals and record training perfor
 recurrent = False
 vectorized_env = False
 normalized_env = False
-start_from_existing = True
+start_from_existing = False
+existing_model_file = "" # no need .zip extension
+
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "15" + "-" + "shadowgym"
-existing_model_file = "2150000" # no need .zip extension
+run_name = "PPO" + "-" + "16" + "-" + "shadowgym"
 saving_timesteps_interval = 50_000
 start_saving = 1_000_000
 
@@ -76,11 +77,11 @@ else:
     if start_from_existing:
         model = PPO.load(full_model_path, env)
     else:
-        model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, verbose=0)
+        model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, verbose=1)
 
 timesteps = 0
 while True:
-    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False, callback=rewards_callback)
+    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
     if timesteps >= start_saving:
         model.save(f"{models_dir}/{run_name}/{timesteps}")

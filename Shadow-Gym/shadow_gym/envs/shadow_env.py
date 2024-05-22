@@ -98,9 +98,13 @@ class ShadowEnv(gym.Env):
         self.num_steps = 0
 
         self.previous_rotation_to_target = 4
-        self.target_quaternion = p.getQuaternionFromEuler([0, 0, 0])
+        self.target_euler = [0,0,0]
+        self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
         self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
 
+        self.episodes_before_change = 100
+        self.episode_counter = 0
+        self.cubeStartOrientation = []
         self.reset()
 
     def step(self, action):
@@ -137,12 +141,25 @@ class ShadowEnv(gym.Env):
         return observation, self.reward, self.done, info
 
     def reset(self):
+        if self.episode_counter == 0:
+            self.episode_counter = self.episodes_before_change
+            euler = [np.random.randint(0, 3) * (np.pi / 2),
+                    np.random.randint(0, 3) * (np.pi / 2),
+                    np.random.randint(0, 3) * (np.pi / 2)]
+            while euler != self.target_euler:
+                euler = [np.random.randint(0, 3) * (np.pi / 2),
+                        np.random.randint(0, 3) * (np.pi / 2),
+                        np.random.randint(0, 3) * (np.pi / 2)]
+            self.cubeStartOrientation = euler
+        self.episode_counter -= 1
+
+
         p.resetSimulation(self.client)
         p.setGravity(0, 0, -10)
 
         Plane(self.client)
         self.hand = Hand(self.client)
-        self.cube = Cube(self.client)
+        self.cube = Cube(self.client, self.cubeStartOrientation)
 
         self.done = False
         self.num_steps = 0

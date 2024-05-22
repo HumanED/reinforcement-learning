@@ -4,13 +4,10 @@ import numpy as np
 
 
 class Cube:
-    def __init__(self, client):
+    def __init__(self, client, startOrientation):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'cube.urdf')
         startPosition = [0, -0.363, 0.305]
-        startOrientation = [np.random.randint(0, 3) * (np.pi / 2),
-                            np.random.randint(0, 3) * (np.pi / 2),
-                            np.random.randint(0, 3) * (np.pi / 2)]
         startOrientationQuaternion = p.getQuaternionFromEuler(startOrientation)
         self.cube = p.loadURDF(f_name,
                                startPosition, startOrientationQuaternion,
