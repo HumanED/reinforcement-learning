@@ -42,6 +42,17 @@ hand_motion_high = np.concatenate((wrist_high, index_high, middle_high, ring_hig
 hand_velocity_high = np.array([np.inf] * 96)
 hand_velocity_low = np.array([-np.inf] * 96)
 
+cube_pos_low = np.array([-5,-5,-5])
+cube_pos_high = np.array([5,5,5])
+cube_orientation_q_low = np.array([-1,-1,-1,-1])
+cube_orientation_q_high = np.array([1,1,1,1])
+cube_relative_q_low = np.array([-1,-1,-1,-1])
+cube_relative_q_high = np.array([1,1,1,1])
+cube_linear_vel_low = np.array([-np.inf,-np.inf,-np.inf])
+cube_linear_vel_high = np.array([np.inf,np.inf,np.inf])
+cube_angular_vel_q_low = np.array([-1,-1,-1,-1])
+cube_angular_vel_q_high = np.array([1,1,1,1])
+
 
 def calculate_angular_difference(orientation1, orientation2):
     """
@@ -58,6 +69,26 @@ def calculate_angular_difference(orientation1, orientation2):
     # Convert angular difference into axis-angle representation
     rotation_magnitude = np.linalg.norm(axis_angle)
     return rotation_magnitude
+
+def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarray:
+    """
+    Converts angular velocity expressed as radians per second [wx, wy, wz] to quaternion [w, x, y, z]
+    View https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
+    and 
+    https://math.stackexchange.com/questions/39553/how-do-i-apply-an-angular-velocity-vector3-to-a-unit-quaternion-orientation
+    """
+    wx, wy, wz = omega
+    omega_mag = np.sqrt(wx**2 + wy**2 + wz**2)
+    if omega_mag == 0:
+        # No rotation
+        return np.array([1,0,0,0])
+    theta = omega_mag * delta_t
+    ux, uy, uz = wx / omega_mag, wy / omega_mag, wz / omega_mag
+    q_w = np.cos(theta / 2)
+    q_x = ux * np.sin(theta / 2)
+    q_y = uy * np.sin(theta / 2)
+    q_z = uz * np.sin(theta / 2)
+    return np.array([q_w, q_x, q_y, q_z])
 
 
 class ShadowEnv(gym.Env):
@@ -80,10 +111,10 @@ class ShadowEnv(gym.Env):
         self.observation_space = gym.spaces.box.Box(
             # Cube observation is 7 digit ndarray with position (x,y,z) and relative quaternion (w,x,y,z),
             # orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
-            low=np.concatenate((hand_motion_low, hand_velocity_low, np.array(
-                [-np.inf, -np.inf, -np.inf, -1, -1, -1, -1]))),
-            high=np.concatenate((hand_motion_high, hand_velocity_high, np.array(
-                [np.inf, np.inf, np.inf, 1, 1, 1, 1])))
+            low=np.concatenate((hand_motion_low, hand_velocity_low, 
+                                cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low)),
+            high=np.concatenate((hand_motion_high, hand_velocity_high,
+                                cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high))
         )
 
         self.np_random, _ = gym.utils.seeding.np_random()
@@ -101,7 +132,7 @@ class ShadowEnv(gym.Env):
         self.done = False
         self.num_steps = 0
 
-        self.previous_rotation_to_target = 4
+        self.previous_rotation_to_target = None
         self.target_euler = [0, 0, 0]
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
         self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
@@ -110,17 +141,30 @@ class ShadowEnv(gym.Env):
         self.episode_counter = 0
         self.reset()
 
-    def get_cube_observation(self, target_orientation_q: list[int]):
-        """Returns 7 digit ndarray containing position (x,y,z), relative orientation quaternion (w, x, y, z)"""
+    def get_cube_observation(self, target_orientation_q: list[int]) -> np.ndarray:
+        """
+        Returns 18 digit ndarray containing position (x,y,z), 
+        cube orientation quaternion (w, x, y, z),
+        relative orientation quaternion to target (w, x, y, z),
+        cube velocity (x, y, z) and
+        cube angular velocity quaternion (w, x, y, z)
+        """
         position, orientation_quaternion = p.getBasePositionAndOrientation(self.cube.cube_body)
+        linear_vel, angular_vel = p.getBaseVelocity(self.cube.cube_body)
+        angular_vel_q = angular_velocity_to_quaternion(omega=angular_vel, delta_t=1)
         q1 = Quaternion(target_orientation_q)
         q2 = Quaternion(orientation_quaternion)
         relative_q = q1 * q2.inverse
         relative_q = list(relative_q)
-        return np.concatenate((position, relative_q))
+        return np.concatenate((position, orientation_quaternion, relative_q, linear_vel, angular_vel_q))
 
-    def get_hand_observation(self):
-        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30]
+    def get_hand_observation(self) -> np.ndarray:
+        """
+        Returns
+        24 joint positions (not cartesian x,y,z but a singular angle value in radians. View high and low values and shadow hand docs for more info)
+        link velocities relative to Cartesian world (not local frame). View Pybullet docs on getJointState method
+        """
+        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30] #24 joints
         joint_position = []
 
         # Adding the velocities (x,y,z) of each link
@@ -149,10 +193,14 @@ class ShadowEnv(gym.Env):
         observation = np.concatenate((hand_observation, cube_observation))
 
         info = {"success": False}
+
         # Reward calculations
         cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
         rotation_to_target = calculate_angular_difference(self.target_quaternion, cube_orientation_q)
-        self.reward = self.previous_rotation_to_target - rotation_to_target
+        if self.previous_rotation_to_target == None:
+            self.reward = 0
+        else:
+            self.reward = self.previous_rotation_to_target - rotation_to_target
 
         if rotation_to_target < 0.4:
             # We are less than 0.4 radians (23 degrees to target)
