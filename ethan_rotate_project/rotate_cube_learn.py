@@ -1,6 +1,7 @@
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.monitor import Monitor
 
 import os
 import shadow_gym
@@ -63,6 +64,7 @@ if vectorized_env:
     rewards_callback = TensorboardCallback()
 else:
     env = gym.make("ShadowEnv-v0", GUI=False)
+env = Monitor(env)
 
 full_model_path = None
 if start_from_existing:

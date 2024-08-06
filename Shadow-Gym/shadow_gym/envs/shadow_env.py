@@ -1,4 +1,6 @@
 import gym
+import gym.spaces
+import gym.spaces.multi_discrete
 import numpy as np
 import pybullet as p
 from shadow_gym.resources.hand import Hand
@@ -92,16 +94,16 @@ def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarr
 
 
 class ShadowEnv(gym.Env):
+    """
+    :param bool GUI: `GUI=True` after training. `GUI=False` for during training
+    """
     metadata = {'render.modes': ['human']}
 
     def __init__(self, GUI=False):
-        """
-        :param GUI: `GUI=True` after training. `GUI=False` for during training
-        """
-        self.reward = None
         if discretize:
             # 11 bins for each of the 24 actions
-            self.action_space = gym.spaces.MultiDiscrete([11] * 24)
+            nvec = [11] * 24
+            self.action_space = gym.spaces.MultiDiscrete(nvec=nvec) # Warning. Ensure gymnasium uninstalled
         else:
             self.action_space = gym.spaces.box.Box(
                 low=hand_motion_low,
@@ -136,9 +138,9 @@ class ShadowEnv(gym.Env):
         self.target_euler = [0, 0, 0]
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
         self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
-
         self.episodes_before_change = 100
         self.episode_counter = 0
+        self.reward = None
         self.reset()
 
     def get_cube_observation(self, target_orientation_q: list[int]) -> np.ndarray:
