@@ -127,20 +127,28 @@ class ShadowEnv(gym.Env):
         cube_orientation_q = p.getQuaternionFromEuler(cube_observation[3:6])
         observation = np.concatenate((hand_observation, cube_observation))
 
-        # Reward calculations
-        rotation_to_target = calculate_angular_difference(self.target_q, cube_orientation_q)
-        reward = self.previous_rotation_to_target - rotation_to_target
+        orientation_diff = p.getDifferenceQuaternion(self.target_q, cube_orientation_q)
+        orientation_distance = np.linalg.norm(orientation_diff)
 
-        if rotation_to_target < 0.26:
+        reward = -orientation_distance
+
+        # Reward calculations
+        #rotation_to_target = calculate_angular_difference(self.target_q, cube_orientation_q)
+        #reward = self.previous_rotation_to_target - rotation_to_target
+
+        if orientation_distance < 0.26:
             # We are less than 15 degrees to the target
-            reward = 2500
+            reward += 10
             self.done = True
         if cube_observation[2] < 0.05:
-            reward = -100
+            reward -= 20
             self.done = True
         if self.num_steps > self.STEP_LIMIT:  # 600
             self.done = True
-        self.previous_rotation_to_target = rotation_to_target
+        
+        else:
+            self.done = False
+        #self.previous_rotation_to_target = rotation_to_target
 
         return observation, reward, self.done, dict()
 
