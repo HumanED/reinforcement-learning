@@ -5,7 +5,7 @@ from stable_baselines3.common.monitor import Monitor
 
 import os
 import shadow_gym
-import gym
+import gymnasium
 
 """
 Created by Ethan Cheam
@@ -21,8 +21,8 @@ start_from_existing = False
 existing_model_file = "" # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "16" + "-" + "shadowgym"
-saving_timesteps_interval = 250_000
+run_name = "PPO" + "-" + "17" + "-" + "shadowgym"
+saving_timesteps_interval = 500_000
 start_saving = 1_000_000
 
 # Set up folders to store models and logs
@@ -58,12 +58,12 @@ class TensorboardCallback(BaseCallback):
 
 rewards_callback = None
 if vectorized_env:
-    env = DummyVecEnv([lambda: gym.make("ShadowEnv-v0", GUI=False)])
+    env = DummyVecEnv([lambda: gymnasium.make("ShadowEnv-v0", GUI=False)])
     if normalized_env:
         env = VecNormalize(env)
     rewards_callback = TensorboardCallback()
 else:
-    env = gym.make("ShadowEnv-v0", GUI=False)
+    env = gymnasium.make("ShadowEnv-v0", GUI=False)
 env = Monitor(env)
 
 full_model_path = None
@@ -83,7 +83,7 @@ else:
 
 timesteps = 0
 while True:
-    model.learn(1000, tb_log_name=run_name, reset_num_timesteps=False)
+    model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
     if timesteps >= start_saving:
         model.save(f"{models_dir}/{run_name}/{timesteps}")
