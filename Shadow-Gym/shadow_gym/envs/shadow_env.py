@@ -1,6 +1,6 @@
-import gym
-import gym.spaces
-import gym.spaces.multi_discrete
+import gymnasium
+import gymnasium.spaces
+import gymnasium.spaces.multi_discrete
 import numpy as np
 import pybullet as p
 from shadow_gym.resources.hand import Hand
@@ -11,21 +11,22 @@ from scipy.spatial.transform import Rotation
 from pyquaternion import Quaternion
 import random
 
+
 # Changed by Ethan
 discretize = True
 number_of_bins = 11
 
 wrist_low = np.array([-0.489, -0.785])
 wrist_high = np.array([0.140, 0.524])
-index_low = np.array([-0.349, 0, 0, 0])
+index_low = np.array([-0.349, 0.0, 0.0, 0.0])
 index_high = np.array([0.349, 1.571, 1.571, 1.571])
-middle_low = np.array([-0.349, 0, 0, 0])
+middle_low = np.array([-0.349, 0.0, 0.0, 0.0])
 middle_high = np.array([0.349, 1.571, 1.571, 1.571])
-ring_low = np.array([-0.349, 0, 0, 0])
+ring_low = np.array([-0.349, 0.0, 0.0, 0.0])
 ring_high = np.array([0.349, 1.571, 1.571, 1.571])
-little_low = np.array([0, -0.349, 0, 0, 0])
+little_low = np.array([0.0, -0.349, 0.0, 0.0, 0.0])
 little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571])
-thumb_low = np.array([-0.960, 0, -0.209, -0.436, 0])
+thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0])
 thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571])
 
 if discretize:
@@ -93,7 +94,7 @@ def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarr
     return np.array([q_w, q_x, q_y, q_z])
 
 
-class ShadowEnv(gym.Env):
+class ShadowEnv(gymnasium.Env):
     """
     :param bool GUI: `GUI=True` after training. `GUI=False` for during training
     """
@@ -102,25 +103,22 @@ class ShadowEnv(gym.Env):
     def __init__(self, GUI=False):
         if discretize:
             # 11 bins for each of the 24 actions
-            nvec = [11] * 24
-            self.action_space = gym.spaces.MultiDiscrete(nvec=nvec) # Warning. Ensure gymnasium uninstalled
+            self.action_space = gymnasium.spaces.MultiDiscrete(nvec=[11] * 24)
         else:
-            self.action_space = gym.spaces.box.Box(
+            self.action_space = gymnasium.spaces.box.Box(
                 low=hand_motion_low,
                 high=hand_motion_high
             )
-
-        self.observation_space = gym.spaces.box.Box(
+        self.observation_space = gymnasium.spaces.Box(
             # Cube observation is 7 digit ndarray with position (x,y,z) and relative quaternion (w,x,y,z),
             # orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
             low=np.concatenate((hand_motion_low, hand_velocity_low, 
                                 cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low)),
             high=np.concatenate((hand_motion_high, hand_velocity_high,
-                                cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high))
+                                cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high)),
         )
 
-        self.np_random, _ = gym.utils.seeding.np_random()
-
+        self.np_random, _ = gymnasium.utils.seeding.np_random() # not applicable to gymnasium
         if GUI:
             self.client = p.connect(p.GUI)
         else:
@@ -131,7 +129,6 @@ class ShadowEnv(gym.Env):
         self.hand = None
         self.cube = None
         self.rendered_img = None
-        self.done = False
         self.num_steps = 0
 
         self.previous_rotation_to_target = None
@@ -158,7 +155,7 @@ class ShadowEnv(gym.Env):
         q2 = Quaternion(orientation_quaternion)
         relative_q = q1 * q2.inverse
         relative_q = list(relative_q)
-        return np.concatenate((position, orientation_quaternion, relative_q, linear_vel, angular_vel_q))
+        return np.concatenate((position, orientation_quaternion, relative_q, linear_vel, angular_vel_q),dtype=np.float32)
 
     def get_hand_observation(self) -> np.ndarray:
         """
@@ -178,7 +175,7 @@ class ShadowEnv(gym.Env):
         for joint_id in joints:
             joint_position.append(p.getJointState(self.hand.hand_body, joint_id)[0])
 
-        return np.array(joint_position + link_velocity)
+        return np.array(joint_position + link_velocity, dtype=np.float32)
 
     def step(self, action):
         self.num_steps += 1
@@ -207,19 +204,20 @@ class ShadowEnv(gym.Env):
         if rotation_to_target < 0.4:
             # We are less than 0.4 radians (23 degrees to target)
             self.reward = 5
-            self.done = True
+            self.terminated = True
             info["success"] = True
         if cube_observation[2] < 0.05:
             # Cube is dropped
             self.reward = -20
-            self.done = True
+            self.terminated = True
         if self.num_steps > self.STEP_LIMIT:  # 300
-            self.done = True
+            self.truncated = True
         self.previous_rotation_to_target = rotation_to_target
 
-        return observation, self.reward, self.done, info
+        return observation, self.reward, self.terminated, self.truncated, info
 
-    def reset(self):
+    def reset(self, seed=None):
+        self.seed(seed)
         if self.episode_counter == 0:
             self.episode_counter = self.episodes_before_change
             euler = [np.random.randint(0, 3) * (np.pi / 2),
@@ -243,14 +241,15 @@ class ShadowEnv(gym.Env):
         random_orientation_q = p.getQuaternionFromEuler(random_orientation_euler)
         self.cube = Cube(self.client, random_orientation_q)
 
-        self.done = False
+        self.terminated = False
+        self.truncated = False
         self.num_steps = 0
 
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
 
         observation = np.concatenate((hand_observation, cube_observation))
-        return observation
+        return observation, {}
 
     def render(self):
         if self.rendered_img is None:
@@ -281,5 +280,5 @@ class ShadowEnv(gym.Env):
         p.disconnect(self.client)
 
     def seed(self, seed=None):
-        self.np_random, seed = gym.utils.seeding.np_random(seed)
+        self.np_random, seed = gymnasium.utils.seeding.np_random(seed)
         return [seed]
