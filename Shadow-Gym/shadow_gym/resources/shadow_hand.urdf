@@ -203,14 +203,20 @@
         </geometry>
       </collision>
     </link>
-    <!-- rh_manipulator not seen on other implementations of pybullet environment. Deemed unnecessary-->
+    <!-- rh_manipulator not seen on other implementations of pybullet environment. It is unnecessary. Ignore warnings. Do not comment out below code since it affects joint indexes-->
     <!-- https://github.com/szahlner/shadowhand-gym/blob/master/shadowhand_gym/envs/assets/urdf/shadow_hand.urdf -->
-    <!-- <joint name="rh_ee_fixed_joint" type="fixed">
+    <joint name="rh_ee_fixed_joint" type="fixed">
       <parent link="rh_palm"/>
       <child link="rh_manipulator"/>
       <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.05"/>
     </joint>
-    <link name="rh_manipulator"/> -->
+    <link name="rh_manipulator">
+      <inertial>
+        <mass value="10"/>
+        <inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
     <joint name="rh_WRJ1" type="revolute">
       <parent link="rh_wrist"/>
       <child link="rh_palm"/>
@@ -223,9 +229,15 @@
       <provideFeedback>1</provideFeedback>
       <implicitSpringDamper>1</implicitSpringDamper>
     </gazebo>
-    <!-- Inertial Measurement Unit sensor. Not seen in other implementations of shadow_hand for pybullet. Considered unnecessary -->
+    <!-- Inertial Measurement Unit sensor. Not seen in other implementations of shadow_hand for pybullet. Considered unnecessary. Added 0 mass and default rotational matrix to silence wwarnings -->
     <!-- View https://github.com/szahlner/shadowhand-gym/blob/master/shadowhand_gym/envs/assets/urdf/shadow_hand.urdf -->
-    <!-- <link name="rh_imu"/>
+    <link name="rh_imu">
+      <inertial>
+        <origin xyz = "0 0 0"/>
+        <mass value="0.0"/>
+        <inertia ixx="1" iyy="1" izz="1" ixy="0.0" ixz="0.0" iyz="0.0"/>
+      </inertial>
+    </link>
     <joint name="rh_palm_to_imu" type="fixed">
       <parent link="rh_palm"/>
       <child link="rh_imu"/>
@@ -234,7 +246,7 @@
     <sensor name="rh_imu" update_rate="100">
       <parent link="rh_imu"/>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-    </sensor> -->
+    </sensor>
     <transmission name="rh_palm_transmission">
       <type>sr_mechanism_model/SimpleTransmission</type>
       <actuator name="rh_WRJ1">
