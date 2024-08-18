@@ -17,7 +17,9 @@ class Cube:
         self.cube = p.loadURDF(f_name,
                                cubeStartPosition,
                                physicsClientId=client)
-        x = p.loadTexture('cube_texture.jpg')
+        texture_path = os.path.join(os.path.dirname(__file__),'cube_texture.jpg')
+        # x = p.loadTexture('cube_texture.jpg')
+        x = p.loadTexture(texture_path)
         p.changeVisualShape(self.cube, -1, textureUniqueId=x)
 
 class Hand:
