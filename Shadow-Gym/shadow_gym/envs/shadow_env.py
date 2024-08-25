@@ -191,8 +191,6 @@ class ShadowEnv(gymnasium.Env):
 
         observation = np.concatenate((hand_observation, cube_observation))
 
-        info = {"success": False}
-
         # Reward calculations
         cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
         rotation_to_target = calculate_angular_difference(self.target_quaternion, cube_orientation_q)
@@ -205,18 +203,19 @@ class ShadowEnv(gymnasium.Env):
             # We are less than 0.4 radians (23 degrees to target)
             self.reward = 5
             self.terminated = True
-            info["success"] = True
+            self.info["success"] = True
         if cube_observation[2] < 0.05:
             # Cube is dropped
             self.reward = -20
             self.terminated = True
         if self.num_steps > self.STEP_LIMIT:  # 300
             self.truncated = True
+        self.info["ep_steps"] = self.num_steps
         self.previous_rotation_to_target = rotation_to_target
 
-        return observation, self.reward, self.terminated, self.truncated, info
+        return observation, self.reward, self.terminated, self.truncated, self.info
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options={}):
         self.seed(seed)
         if self.episode_counter == 0:
             self.episode_counter = self.episodes_before_change
@@ -229,6 +228,7 @@ class ShadowEnv(gymnasium.Env):
                          np.random.randint(0, 3) * (np.pi / 2)]
             self.cube_start_orientation = euler
         self.episode_counter -= 1
+
 
         p.resetSimulation(self.client)
         p.setGravity(0, 0, -10)
@@ -244,12 +244,15 @@ class ShadowEnv(gymnasium.Env):
         self.terminated = False
         self.truncated = False
         self.num_steps = 0
+        self.info = {}
+        self.info["ep_steps"] = self.num_steps
+        self.info["success"] = False
 
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
 
         observation = np.concatenate((hand_observation, cube_observation))
-        return observation, {}
+        return observation, self.info
 
     def render(self):
         if self.rendered_img is None:
