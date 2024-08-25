@@ -6,11 +6,12 @@ from gymnasium.wrappers.normalize import NormalizeObservation
 import numpy as np
 import gymnasium
 import shadow_gym
+from tqdm.auto import tqdm
 
 # SETTINGS
-num_ep_evaluate = 100
+num_ep_evaluate = 10
 # Run name should have model, unique number, and optionally a description
-model_folder_zip = "PPO-15-shadowgym/10000.zip"
+model_folder_zip = "PPO-17b-shadowgym/30000.zip"
 
 
 # Set up folders to store models and logs
@@ -31,7 +32,7 @@ episode_rewards = []
 obs, info = env.reset()
 for key in info.keys():
     episode_info[key] = []
-for episode in range(num_ep_evaluate):
+for episode in tqdm(range(num_ep_evaluate)):
     terminated = False
     truncated = False
     obs, info = env.reset()
@@ -40,7 +41,7 @@ for episode in range(num_ep_evaluate):
         action, _ = model.predict(obs)
         obs, reward, terminated, truncated, info = env.step(action)
         episode_reward += reward
-    if key in info.keys():
+    for key in info.keys():
         episode_info[key].append(info[key])
     episode_rewards.append(episode_reward)
 

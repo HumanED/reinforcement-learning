@@ -18,8 +18,8 @@ existing_model_file = "" # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "17b" + "-" + "shadowgym"
-saving_timesteps_interval = 10_000
-start_saving = 10_000
+saving_timesteps_interval = 500_000
+start_saving = 1_000_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')

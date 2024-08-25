@@ -98,7 +98,7 @@ class ShadowEnv(gymnasium.Env):
     """
     :param bool GUI: `GUI=True` after training. `GUI=False` for during training
     """
-    metadata = {'render.modes': ['human']}
+    metadata = {'render_modes': ['human']}
 
     def __init__(self, GUI=False):
         if discretize:
