@@ -28,3 +28,10 @@ Run `pip install -e .` to install other required packages for the hand model
 For the AI modules run
 `pip install stable_baselines3 tensorboard`
 
+## Github recommendation
+Try following this training loop
+1. Modify environment and training code
+2. Train model
+3. Visualise and evalute model
+4. Commit all files (model, logs and environment code) to git
+5. ONLY AFTER COMMITTING, modify environment/training code
