@@ -222,7 +222,7 @@ class ShadowEnv(gymnasium.Env):
             euler = [np.random.randint(0, 3) * (np.pi / 2),
                      np.random.randint(0, 3) * (np.pi / 2),
                      np.random.randint(0, 3) * (np.pi / 2)]
-            while euler != self.target_euler:
+            while euler == self.target_euler:
                 euler = [np.random.randint(0, 3) * (np.pi / 2),
                          np.random.randint(0, 3) * (np.pi / 2),
                          np.random.randint(0, 3) * (np.pi / 2)]
