@@ -240,15 +240,15 @@ class ShadowEnv(gymnasium.Env):
                                     random.randint(-1,1) * np.pi/2)
         random_orientation_q = p.getQuaternionFromEuler(random_orientation_euler)
         self.cube = Cube(self.client, random_orientation_q)
-        # 20 random actions
-        for _ in range(20):
-            action = self.action_space.sample()
-            self.step(action)
 
         self.terminated = False
         self.truncated = False
         self.num_steps = 0
         self.info = {}
+        # 20 random actions
+        for _ in range(20):
+            action = self.action_space.sample()
+            self.step(action)
         self.info["ep_steps"] = self.num_steps
         self.info["success"] = False
 
