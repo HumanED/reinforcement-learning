@@ -17,9 +17,10 @@ planeId = p.loadURDF("plane.urdf")
 # Load the simulated hand
 startPosition = [0, 0, 1/4]
 startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, 0])
-hand = p.loadURDF("urdfs/shadow_hand/shadow_hand.urdf", startPosition, startOrientation)
-cube = p.loadURDF("urdfs/cube/cube.urdf", [0, -1/3.5, 1/3])
-
+hand = p.loadURDF("Shadow-Gym/shadow_gym/resources/shadow_hand.urdf", startPosition, startOrientation)
+cube = p.loadURDF("Shadow-Gym/shadow_gym/resources/cube.urdf", [0, -1/3.5, 1/3])
+cube_texture = p.loadTexture("Shadow-Gym/shadow_gym/resources/cube_texture.jpg")
+p.changeVisualShape(cube, -1, textureUniqueId=cube_texture)
 def get_join_info():
     """
     Retrieves each joint in the urdf file and provides some info

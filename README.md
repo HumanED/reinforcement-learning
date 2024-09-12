@@ -3,10 +3,35 @@
 ## Contents
 `Shadow-Gym` - template used to create a Gym environment for the Shadow Hand.
 
-`urdfs` - contains the urdf file and other dependencies for the Shadow Hand.
+`urdfs` - files describing the shape, inertia and mass of various components of the hand
 
-`shadow_hand_env.py` - contains basic functionalities to interact with the Shadow Hand in PyBullet.
+`Shadow-Gym/shadow_gym/envs/shadow_env.py` -  main gymnasium model that interacts with Pybullet. You will mainly modify this file alongside `cube.py` and `hand.py`.
+
+`logs` - each folder in `logs` contains the tensorboard logs for each run.
+
+`models` - each folder containes a trained model named according to number of timesteps used e.g. 30000.zip was trained for 30000 timesteps.
+
+`train.py` - script used to train a model. Automatically generates logs to `logs` and saves model to `models`
+
+`visualise_model.py` - script used to open Pybullet window and view the AI model in action
+
+`evaluate_model.py` - runs a model 100 times and counts number of times it successfully rotates the cube to the target orientation
+
+`Shadow-Gym/shadow-gym/resources/cube_colour_visualiser.py` - utility script to view the hand environment with gravity turned off
 
 ### Installation Instructions
+(Recommended) Create a virtual environment with conda or venv  
 
-Run "pip install -e ." in `Shadow-Gym` folder and install other required packages (gym, stable-baselines3, pybullet)
+Enter the `Shadow-Gym` folder (folder with setup.py)  
+Run `pip install -e .` to install other required packages for the hand model
+
+For the AI modules run
+`pip install stable_baselines3 tensorboard`
+
+## Github recommendation
+Try following this training loop
+1. Modify environment and training code
+2. Train model
+3. Visualise and evalute model
+4. Commit all files (model, logs and environment code) to git
+5. ONLY AFTER COMMITTING, modify environment/training code

@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Shadow-Gym" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/rl0" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
