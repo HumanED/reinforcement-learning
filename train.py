@@ -17,8 +17,9 @@ start_from_existing = False
 existing_model_file = "" # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "17b" + "-" + "shadowgym"
-saving_timesteps_interval = 500_000
+# 17c is a long run of a hopefully complete model with clipping and norm obs
+run_name = "PPO" + "-" + "17c" + "-" + "shadowgym"
+saving_timesteps_interval = 500_000 # Reduce this to 100_000 instead
 start_saving = 1_000_000
 
 # Set up folders to store models and logs

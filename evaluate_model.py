@@ -9,9 +9,9 @@ import shadow_gym
 from tqdm.auto import tqdm
 
 # SETTINGS
-num_ep_evaluate = 10
+num_ep_evaluate = 20
 # Run name should have model, unique number, and optionally a description
-model_folder_zip = "PPO-17b-shadowgym/30000.zip"
+model_folder_zip = "PPO-17c-shadowgym/2000000.zip"
 
 
 # Set up folders to store models and logs
