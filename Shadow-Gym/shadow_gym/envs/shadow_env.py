@@ -239,6 +239,12 @@ class ShadowEnv(gymnasium.Env):
         for _ in range(20):
             action = self.action_space.sample()
             self.step(action)
+        for _ in range(5):
+            p.stepSimulation()
+        cube_observation = self.get_cube_observation(self.target_quaternion)
+        if cube_observation[2] < 0.05:
+            # Reset simulation if cube fell off.
+            self.reset()
         self.num_steps = 0
         self.info = {}
         # 20 random actions
