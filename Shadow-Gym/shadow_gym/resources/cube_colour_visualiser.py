@@ -3,7 +3,7 @@ import time, os, math
 import numpy as np
 client = p.connect(p.GUI)
 
-cubeStartPosition = [0, -1 / 3.5, 1 / 3]
+cubeStartPosition = [0, -0.363, 0.305]
 # Implementing a random start
 np.random.randint(0,3)
 cubeOrientation = [np.random.randint(0,3) * (np.pi/2),
