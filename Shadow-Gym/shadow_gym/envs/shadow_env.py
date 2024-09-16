@@ -8,7 +8,7 @@ from shadow_gym.resources.plane import Plane
 from shadow_gym.resources.cube import Cube
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
-from pyquaternion import Quaternion
+
 import random
 
 

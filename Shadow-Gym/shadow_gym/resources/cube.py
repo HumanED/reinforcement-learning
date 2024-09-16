@@ -1,7 +1,6 @@
 import pybullet as p
 import os
 import numpy as np
-from pyquaternion import Quaternion
 
 class Cube:
     def __init__(self, client, start_orientation_q):
