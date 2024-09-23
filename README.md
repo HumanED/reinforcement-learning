@@ -25,8 +25,8 @@
 Enter the `Shadow-Gym` folder (folder with setup.py)  
 Run `pip install -e .` to install other required packages for the hand model
 
-For the AI modules run
-`pip install stable_baselines3 tensorboard`
+Secondly, For the AI modules run
+`pip install stable_baselines3 protobuf==4.25 tensorboard`
 
 ## Github recommendation
 Try following this training loop
