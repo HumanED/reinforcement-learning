@@ -15,8 +15,8 @@ Trains a PPO model, saves models at regular intervals, and record training perfo
 # SETTINGS
 # When starting from an existing model, run_name is name of original run and rerun_name is name of logs and models of the new run
 start_from_existing = True
-existing_model_file = os.path.join("PPO-17c-shadowgym","2500000") # no need .zip extension
-re_run_name = "PPO-17c-shadowgym-rerun-2"
+existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no need .zip extension
+re_run_name = "PPO-17c-shadowgym-rerun-3"
 
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO-17c-shadowgym"
