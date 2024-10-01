@@ -34,4 +34,5 @@ Try following this training loop
 2. Train model
 3. Visualise and evalute model
 4. Commit all files (model, logs and environment code) to git
-5. ONLY AFTER COMMITTING, modify environment/training code
+5. Record a 5 minute video and write short report in provided excel sheet
+6. ONLY AFTER COMMITTING, modify environment/training code
