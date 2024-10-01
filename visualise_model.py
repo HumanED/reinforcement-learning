@@ -13,8 +13,8 @@ normalized_env = False
 # Set num_evaluate to -1 to enable rendering and just view the project
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "17c" + "-" + "shadowgym"
-model_file = "2500000.zip"
+run_name = "PPO" + "-" + "17c" + "-" + "shadowgym-rerun-2"
+model_file = "3500000.zip"
 normalize_stats_file = "1800000.pkl"
 
 
