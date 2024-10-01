@@ -206,7 +206,7 @@ class ShadowEnv(gymnasium.Env):
         # We are less than 0.4 radians (23 degrees to target)
         if rotation_to_target < 0.4:
             self.reward = 5
-            self.info["success"] += 1
+            self.info["success"] = 1
 
         # Termination conditions
         if cube_observation[2] < 0.05:

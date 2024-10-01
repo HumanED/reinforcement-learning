@@ -19,6 +19,10 @@
 
 `Shadow-Gym/shadow-gym/resources/cube_colour_visualiser.py` - utility script to view the hand environment with gravity turned off
 
+`pybullet_hand_demo.py` - utility script to view the names and location of each hand joint. Hand joint should be restricted according to observation space.
+
+`Shadow-Gym/shadow_gym/envs/env_checker.py` - utility script to check if shadow_env.py is a valid Gymnasium environemnt. It flags the "obs is outside observation space" warning with explaination suggesting it is mere floating point problem.
+
 ### Installation Instructions
 (Recommended) Create a virtual environment with conda or venv  
 
