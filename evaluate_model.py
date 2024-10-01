@@ -49,9 +49,9 @@ print(f"episode_rewards",episode_rewards)
 for key, value in episode_info.items():
     print(key, value)
 print("-------------------------------------")
-print(f"episode_rewards          mean: {mean(episode_rewards)} std: {stdev(episode_rewards)} ")
+print(f"episode_rewards          mean: {mean(episode_rewards):.3f} std: {stdev(episode_rewards):.3f} ")
 for key in episode_info.keys():
-    print(f"{key:20} mean: {mean(episode_info[key])} std: {stdev(episode_info[key])}")
+    print(f"{key:20} mean: {mean(episode_info[key]):.3f} std: {stdev(episode_info[key]):.2f}")
 env.close()
 
 

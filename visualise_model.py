@@ -70,7 +70,7 @@ else:
             action, _ = model.predict(obs)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
-            time.sleep(1/30)
+            time.sleep(1/240)
         # print(f"episode_reward:{episode_reward}")
         if vectorized_env:
             # In vectorized environments, a list of infos is returned. We only want the first info.

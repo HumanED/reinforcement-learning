@@ -127,7 +127,7 @@ class ShadowEnv(gymnasium.Env):
         else:
             self.client = p.connect(p.DIRECT)
 
-        p.setTimeStep(1 / 30, self.client)
+        p.setTimeStep(1 / 240, self.client)
 
         self.hand = None
         self.cube = None
@@ -137,7 +137,7 @@ class ShadowEnv(gymnasium.Env):
         self.previous_rotation_to_target = None
         self.target_euler = [0, 0, 0] # Yellow is up
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
-        self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
+        self.STEP_LIMIT = 150
         self.terminated = False
         self.truncated = False
         self.reward = None
@@ -187,11 +187,13 @@ class ShadowEnv(gymnasium.Env):
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
 
         self.hand.apply_action(action)
-        p.stepSimulation()
+        # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
+        # Consider simulation time the same as real life time when robot is deployed
+        for _ in range(20):
+            p.stepSimulation()
 
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
-
         observation = np.concatenate((hand_observation, cube_observation))
 
         # Reward calculations
@@ -201,12 +203,12 @@ class ShadowEnv(gymnasium.Env):
             self.reward = 0
         else:
             self.reward = self.previous_rotation_to_target - rotation_to_target
-
+        # We are less than 0.4 radians (23 degrees to target)
         if rotation_to_target < 0.4:
-            # We are less than 0.4 radians (23 degrees to target)
             self.reward = 5
-            self.terminated = True
-            self.info["success"] = True
+            self.info["success"] += 1
+
+        # Termination conditions
         if cube_observation[2] < 0.05:
             # Cube is dropped
             self.reward = -20
@@ -220,40 +222,47 @@ class ShadowEnv(gymnasium.Env):
 
     def reset(self, seed=None, options={}):
         self.seed(seed)
-        p.resetSimulation(self.client)
-        p.setGravity(0, 0, -10)
-
-        Plane(self.client)
-        self.hand = Hand(self.client)
-        while True:
-            # Starting orientation must not be same as target orientation
-            random_orientation_euler = (random.randint(-1,1) * np.pi/2,
-                                        random.randint(-1,1) * np.pi/2,
-                                        random.randint(-1,1) * np.pi/2)
-            if random_orientation_euler != self.target_euler:
-                break
+        random_orientation_euler = (random.randint(-1,1) * np.pi/2,
+                                    random.randint(-1,1) * np.pi/2,
+                                    random.randint(-1,1) * np.pi/2)
         random_orientation_q = p.getQuaternionFromEuler(random_orientation_euler)
-        self.cube = Cube(self.client, random_orientation_q)
+        valid_start = False
+        # Apply 30 random actions to further randomise cube start position. If the actions drop the cube, reset the simulation and try again.
+        while not valid_start:
+            valid_start = True
+            p.resetSimulation(self.client)
+            p.setGravity(0, 0, -10)
+            Plane(self.client)
+            self.hand = Hand(self.client)
+            self.cube = Cube(self.client, random_orientation_q)
+
+            for _ in range(30):
+                action = self.action_space.sample()
+                if discretize:
+                # Convert discrete action choice from the AI to a continuous action for the motor.
+                    action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+                self.hand.apply_action(action)
+                p.stepSimulation()
+
+            # Wait for cube to fall a bit
+            for _ in range(5):
+                p.stepSimulation()
+            # If cube fell, reset simulation
+            cube_observation = self.get_cube_observation(self.target_quaternion)
+            if cube_observation[2] < 0.05:
+                valid_start = False
+
+        # Reset episode termination condition and setup statistics of this episode
         self.terminated = False
         self.truncated = False
-        for _ in range(20):
-            action = self.action_space.sample()
-            self.step(action)
-        for _ in range(5):
-            p.stepSimulation()
-        cube_observation = self.get_cube_observation(self.target_quaternion)
-        if cube_observation[2] < 0.05:
-            # Reset simulation if cube fell off.
-            self.reset()
         self.num_steps = 0
         self.info = {}
-        # 20 random actions
         self.info["ep_steps"] = self.num_steps
-        self.info["success"] = False
+        self.info["success"] = 0
 
+        # Initial observation
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
-
         observation = np.concatenate((hand_observation, cube_observation))
         return observation, self.info
 
