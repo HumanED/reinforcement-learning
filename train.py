@@ -6,20 +6,29 @@ from gymnasium.wrappers.normalize import NormalizeObservation
 from gymnasium.wrappers.transform_observation import TransformObservation
 import numpy as np
 import shadow_gym
+import torch
 
 """
-Author: Ethan Cheam
+Author: Ethan Chen
 Trains a PPO model, saves models at regular intervals, and record training performance in Tensorboard.
 """
 
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("Using MPS backend")
+else:
+    device = torch.device("cpu")
+    print("MPS backend not available, using CPU")
+
+
 # SETTINGS
 # When starting from an existing model, run_name is name of original run and rerun_name is name of logs and models of the new run
-start_from_existing = True
-existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no need .zip extension
-re_run_name = "PPO-17c-shadowgym-rerun-3"
+start_from_existing = False
+existing_model_file = os.path.join("PPO-codrut0-shadowgym=rerun-0","1000000") # no need .zip extension
+re_run_name = "PPO-codrut0-shadowgym-rerun-0"
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-17c-shadowgym"
+run_name = "PPO-codrut0-shadowgym"
 saving_timesteps_interval = 100_000
 start_saving = 500_000
 
@@ -67,12 +76,13 @@ env = Monitor(env)
 
 if start_from_existing:
     previous_model_path = os.path.join(models_dir, existing_model_file)
-    model = PPO.load(previous_model_path, env)
+    model = PPO.load(previous_model_path, env, device=device)
 else:
-    model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, )
+    model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, device=device)
 
 timesteps = 0
 while True:
+    model.
     model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
     if timesteps >= start_saving:

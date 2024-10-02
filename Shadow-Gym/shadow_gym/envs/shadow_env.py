@@ -15,18 +15,18 @@ import random
 discretize = True
 number_of_bins = 11
 
-wrist_low = np.array([-0.489, -0.785])
-wrist_high = np.array([0.140, 0.524])
-index_low = np.array([-0.349, 0.0, 0.0, 0.0])
-index_high = np.array([0.349, 1.571, 1.571, 1.571])
-middle_low = np.array([-0.349, 0.0, 0.0, 0.0])
-middle_high = np.array([0.349, 1.571, 1.571, 1.571])
-ring_low = np.array([-0.349, 0.0, 0.0, 0.0])
-ring_high = np.array([0.349, 1.571, 1.571, 1.571])
-little_low = np.array([0.0, -0.349, 0.0, 0.0, 0.0])
-little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571])
-thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0])
-thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571])
+wrist_low = np.array([-0.489, -0.785], dtype=np.float32)
+wrist_high = np.array([0.140, 0.524]    , dtype=np.float32)
+index_low = np.array([-0.349, 0.0, 0.0, 0.0]    , dtype=np.float32)
+index_high = np.array([0.349, 1.571, 1.571, 1.571]  , dtype=np.float32)
+middle_low = np.array([-0.349, 0.0, 0.0, 0.0]   , dtype=np.float32)
+middle_high = np.array([0.349, 1.571, 1.571, 1.571] , dtype=np.float32)
+ring_low = np.array([-0.349, 0.0, 0.0, 0.0]  , dtype=np.float32)
+ring_high = np.array([0.349, 1.571, 1.571, 1.571]   , dtype=np.float32)
+little_low = np.array([0.0, -0.349, 0.0, 0.0, 0.0]  , dtype=np.float32)
+little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571]  , dtype=np.float32)
+thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0] , dtype=np.float32)
+thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571]   , dtype=np.float32)
 
 if discretize:
     wrist_bin_size = (wrist_high - wrist_low) / number_of_bins
@@ -36,24 +36,24 @@ if discretize:
     little_bin_size = (little_high - little_low) / number_of_bins
     thumb_bin_size = (thumb_high - thumb_low) / number_of_bins
     bin_sizes = np.concatenate(
-        (wrist_bin_size, index_bin_size, middle_bin_size, ring_bin_size, little_bin_size, thumb_bin_size,))
+        (wrist_bin_size, index_bin_size, middle_bin_size, ring_bin_size, little_bin_size, thumb_bin_size,), dtype=np.float32)
 
-hand_motion_low = np.concatenate((wrist_low, index_low, middle_low, ring_low, little_low, thumb_low))
-hand_motion_high = np.concatenate((wrist_high, index_high, middle_high, ring_high, little_high, thumb_high))
+hand_motion_low = np.concatenate((wrist_low, index_low, middle_low, ring_low, little_low, thumb_low), dtype=np.float32)
+hand_motion_high = np.concatenate((wrist_high, index_high, middle_high, ring_high, little_high, thumb_high), dtype=np.float32)
 
-hand_velocity_high = np.array([np.inf] * 96)
-hand_velocity_low = np.array([-np.inf] * 96)
+hand_velocity_high = np.array([np.inf] * 96, dtype=np.float32)
+hand_velocity_low = np.array([-np.inf] * 96, dtype=np.float32)
 
-cube_pos_low = np.array([-5,-5,-5])
-cube_pos_high = np.array([5,5,5])
-cube_orientation_q_low = np.array([-1,-1,-1,-1])
-cube_orientation_q_high = np.array([1,1,1,1])
-cube_relative_q_low = np.array([-1,-1,-1,-1])
-cube_relative_q_high = np.array([1,1,1,1])
-cube_linear_vel_low = np.array([-np.inf,-np.inf,-np.inf])
-cube_linear_vel_high = np.array([np.inf,np.inf,np.inf])
-cube_angular_vel_q_low = np.array([-1,-1,-1,-1])
-cube_angular_vel_q_high = np.array([1,1,1,1])
+cube_pos_low = np.array([-5,-5,-5], dtype=np.float32)
+cube_pos_high = np.array([5,5,5], dtype=np.float32)
+cube_orientation_q_low = np.array([-1,-1,-1,-1], dtype=np.float32)
+cube_orientation_q_high = np.array([1,1,1,1], dtype=np.float32)
+cube_relative_q_low = np.array([-1,-1,-1,-1], dtype=np.float32)
+cube_relative_q_high = np.array([1,1,1,1], dtype=np.float32)
+cube_linear_vel_low = np.array([-np.inf,-np.inf,-np.inf], dtype=np.float32)
+cube_linear_vel_high = np.array([np.inf,np.inf,np.inf], dtype=np.float32)
+cube_angular_vel_q_low = np.array([-1,-1,-1,-1], dtype=np.float32)
+cube_angular_vel_q_high = np.array([1,1,1,1], dtype=np.float32)
 
 
 def calculate_angular_difference(orientation1, orientation2):
@@ -96,7 +96,7 @@ def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarr
     q_x = ux * np.sin(theta / 2)
     q_y = uy * np.sin(theta / 2)
     q_z = uz * np.sin(theta / 2)
-    return np.array([q_x, q_y, q_z, q_w])
+    return np.array([q_x, q_y, q_z, q_w], dtype=np.float32)
 
 
 class ShadowEnv(gymnasium.Env):
@@ -116,9 +116,9 @@ class ShadowEnv(gymnasium.Env):
             )
         self.observation_space = gymnasium.spaces.Box(
             low=np.concatenate((hand_motion_low, hand_velocity_low, 
-                                cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low)),
+                                cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low), dtype=np.float32),
             high=np.concatenate((hand_motion_high, hand_velocity_high,
-                                cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high)),
+                                cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high), dtype=np.float32),
         )
 
         self.np_random, _ = gymnasium.utils.seeding.np_random()
@@ -194,7 +194,7 @@ class ShadowEnv(gymnasium.Env):
 
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
-        observation = np.concatenate((hand_observation, cube_observation))
+        observation = np.concatenate((hand_observation, cube_observation), dtype=np.float32)
 
         # Reward calculations
         cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
@@ -218,7 +218,7 @@ class ShadowEnv(gymnasium.Env):
         self.info["ep_steps"] = self.num_steps
         self.previous_rotation_to_target = rotation_to_target
 
-        return observation, self.reward, self.terminated, self.truncated, self.info
+        return np.array(observation, dtype=np.float32), self.reward, self.terminated, self.truncated, self.info
 
     def reset(self, seed=None, options={}):
         self.seed(seed)
@@ -264,7 +264,7 @@ class ShadowEnv(gymnasium.Env):
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
         observation = np.concatenate((hand_observation, cube_observation))
-        return observation, self.info
+        return observation.astype(np.float32), self.info
 
     def render(self):
         if self.rendered_img is None:
