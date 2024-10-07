@@ -13,8 +13,8 @@ normalized_env = False
 # Set num_evaluate to -1 to enable rendering and just view the project
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "17c" + "-" + "shadowgym-rerun-2"
-model_file = "3500000.zip"
+run_name = "PPO-18-shadowgym-ethan"
+model_file = "400000.zip"
 normalize_stats_file = "1800000.pkl"
 
 
@@ -70,7 +70,7 @@ else:
             action, _ = model.predict(obs)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
-            time.sleep(1/240)
+            time.sleep(1/8)
         # print(f"episode_reward:{episode_reward}")
         if vectorized_env:
             # In vectorized environments, a list of infos is returned. We only want the first info.
