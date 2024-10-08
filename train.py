@@ -19,7 +19,7 @@ existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no n
 re_run_name = "PPO-17c-shadowgym-rerun-3"
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-18-shadowgym-ethan"
+run_name = "PPO-19-shadowgym-ethan"
 saving_timesteps_interval = 100_000
 start_saving = 1_00_000
 

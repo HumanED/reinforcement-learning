@@ -227,7 +227,6 @@ class ShadowEnv(gymnasium.Env):
                                     random.randint(-1,1) * np.pi/2)
         random_orientation_q = p.getQuaternionFromEuler(random_orientation_euler)
         valid_start = False
-        # Apply 30 random actions to further randomise cube start position. If the actions drop the cube, reset the simulation and try again.
         while not valid_start:
             valid_start = True
             p.resetSimulation(self.client)
@@ -236,21 +235,23 @@ class ShadowEnv(gymnasium.Env):
             self.hand = Hand(self.client)
             self.cube = Cube(self.client, random_orientation_q)
 
-            for _ in range(30):
-                action = self.action_space.sample()
-                if discretize:
-                # Convert discrete action choice from the AI to a continuous action for the motor.
-                    action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
-                self.hand.apply_action(action)
-                p.stepSimulation()
+        # Apply 30 random actions to further randomise cube start position. If the actions drop the cube, reset the simulation and try again.
+            # for _ in range(30):
+            #     action = self.action_space.sample()
+            #     if discretize:
+            #     # Convert discrete action choice from the AI to a continuous action for the motor.
+            #         action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+            #     action //= 10
+            #     self.hand.apply_action(action)
+            #     p.stepSimulation()
 
-            # Wait for cube to fall a bit
-            for _ in range(5):
-                p.stepSimulation()
-            # If cube fell, reset simulation
-            cube_observation = self.get_cube_observation(self.target_quaternion)
-            if cube_observation[2] < 0.05:
-                valid_start = False
+            # # Wait for cube to fall a bit
+            # for _ in range(5):
+            #     p.stepSimulation()
+            # # If cube fell, reset simulation
+            # cube_observation = self.get_cube_observation(self.target_quaternion)
+            # if cube_observation[2] < 0.05:
+                # valid_start = False
 
         # Reset episode termination condition and setup statistics of this episode
         self.terminated = False
