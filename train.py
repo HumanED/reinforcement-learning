@@ -72,6 +72,9 @@ else:
     model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, )
 
 timesteps = 0
+if start_from_existing:
+    # Override run_name for below argument to tb_log_name
+    run_name = re_run_name
 while True:
     model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
