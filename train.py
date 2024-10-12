@@ -30,7 +30,7 @@ re_run_name = "PPO-codrut0-shadowgym-rerun-0"
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO-codrut0-shadowgym"
 saving_timesteps_interval = 100_000
-start_saving = 500_000
+start_saving = 1_00_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
@@ -81,6 +81,9 @@ else:
     model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, device=device)
 
 timesteps = 0
+if start_from_existing:
+    # Override run_name for below argument to tb_log_name
+    run_name = re_run_name
 while True:
     model.
     model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)

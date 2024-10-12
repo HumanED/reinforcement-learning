@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 # SETTINGS
 num_ep_evaluate = 100
 # Run name should have model, unique number, and optionally a description
-model_folder_zip = "PPO-17c-shadowgym-rerun-2/3500000.zip"
+model_folder_zip = "PPO-19-shadowgym-ethan/700000.zip"
 
 
 # Set up folders to store models and logs
