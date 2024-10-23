@@ -20,8 +20,8 @@ re_run_name = "PPO-17c-shadowgym-rerun-3"
 
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO-19-shadowgym-ethan"
-saving_timesteps_interval = 100_000
-start_saving = 1_00_000
+saving_timesteps_interval = 25_000
+start_saving = 100_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
