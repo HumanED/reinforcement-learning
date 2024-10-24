@@ -1,6 +1,6 @@
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
-import shadow_gym
+import shadow_gym # type: ignore
 import numpy as np
 import gymnasium
 import os

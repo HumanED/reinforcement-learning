@@ -5,7 +5,7 @@ from stable_baselines3 import PPO
 from gymnasium.wrappers.normalize import NormalizeObservation
 import numpy as np
 import gymnasium
-import shadow_gym
+import shadow_gym # type: ignore
 from tqdm.auto import tqdm
 
 # SETTINGS
