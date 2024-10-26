@@ -4,7 +4,7 @@ import os
 
 #Setting:
 
-ALPHA = 0.1
+ALPHA = 0.3
 
 # Initialize EMA with a smoothing factor
 # Lower alpha = smoother changes, higher = EMA more responsive to recent changes
