@@ -45,13 +45,10 @@ class Hand:
 
     def apply_action(self, action):
         joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30]
-        smoothed_action = []
         for i in range(len(action)):
             smoothed_value = self.ema.update(action[i])  # Update EMA for each joint
-            smoothed_action.append(smoothed_value)
-        for i in range(len(smoothed_action)):
             joint_id = joints[i]
-            target_position = smoothed_action[i] 
+            target_position = smoothed_value
             p.setJointMotorControl2(self.hand_body, joint_id,
                                 p.POSITION_CONTROL,
                                 targetPosition=target_position)
