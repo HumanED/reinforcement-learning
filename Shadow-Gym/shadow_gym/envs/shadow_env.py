@@ -180,6 +180,23 @@ class ShadowEnv(gymnasium.Env):
 
         return np.array(joint_position + link_velocity, dtype=np.float32)
 
+        
+    def newtTarget(self): 
+        targets = [
+            [0, 0, 0], 
+            [np.pi/2, 0, 0], 
+            [-np.pi/2, 0, 0], 
+            [0, np.pi/2, 0], 
+            [0, -np.pi/2, 0], 
+            [np.pi, 0, 0], 
+            [0, 0, np.pi]
+            ]
+
+        random_target_orientation_euler = random.choice(targets)
+        self.target_quaternion = p.getQuaternionFromEuler(random_target_orientation_euler)
+        return self.target_quaternion
+
+
     def step(self, action):
         self.num_steps += 1
         if discretize:
@@ -205,6 +222,7 @@ class ShadowEnv(gymnasium.Env):
             self.reward = self.previous_rotation_to_target - rotation_to_target
         # We are less than 0.4 radians (23 degrees to target)
         if rotation_to_target < 0.4:
+            self.newtarget()
             self.reward = 5
             self.info["success"] = 1
 
@@ -220,23 +238,11 @@ class ShadowEnv(gymnasium.Env):
 
         return observation, self.reward, self.terminated, self.truncated, self.info
 
+
     def reset(self, seed=None, options={}):
         self.seed(seed)
 
-
-        #target orientations
-        targets = [
-            [0, 0, 0], 
-            [np.pi/2, 0, 0], 
-            [-np.pi/2, 0, 0], 
-            [0, np.pi/2, 0], 
-            [0, -np.pi/2, 0], 
-            [np.pi, 0, 0], 
-            [0, 0, np.pi]]
-        # Randomize target orientation
-        random_target_orientation_euler = random.choice(targets)
-        self.target_quaternion = p.getQuaternionFromEuler(random_target_orientation_euler)
-
+        self.newtarget()
 
         random_orientation_euler = (random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2,
