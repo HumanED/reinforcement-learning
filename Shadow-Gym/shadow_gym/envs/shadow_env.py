@@ -181,7 +181,7 @@ class ShadowEnv(gymnasium.Env):
         return np.array(joint_position + link_velocity, dtype=np.float32)
 
         
-    def newtTarget(self): 
+    def newttarget(self): 
         targets = [
             [0, 0, 0], 
             [np.pi/2, 0, 0], 
