@@ -222,6 +222,22 @@ class ShadowEnv(gymnasium.Env):
 
     def reset(self, seed=None, options={}):
         self.seed(seed)
+
+
+        #target orientations
+        targets = [
+            [0, 0, 0], 
+            [np.pi/2, 0, 0], 
+            [-np.pi/2, 0, 0], 
+            [0, np.pi/2, 0], 
+            [0, -np.pi/2, 0], 
+            [np.pi, 0, 0], 
+            [0, 0, np.pi]]
+        # Randomize target orientation
+        random_target_orientation_euler = random.choice(targets)
+        self.target_quaternion = p.getQuaternionFromEuler(random_target_orientation_euler)
+
+
         random_orientation_euler = (random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2)

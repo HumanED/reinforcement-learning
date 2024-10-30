@@ -5,7 +5,7 @@ import gymnasium
 from gymnasium.wrappers.normalize import NormalizeObservation
 from gymnasium.wrappers.transform_observation import TransformObservation
 import numpy as np
-import shadow_gym
+import shadow_gym # type: ignore
 
 """
 Author: Ethan Cheam
@@ -19,9 +19,9 @@ existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no n
 re_run_name = "PPO-17c-shadowgym-rerun-3"
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-19-shadowgym-ethan"
-saving_timesteps_interval = 100_000
-start_saving = 1_00_000
+run_name = "PPO-01-shadowgym-peter"
+saving_timesteps_interval = 25_000
+start_saving = 100_000
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
