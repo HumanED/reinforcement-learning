@@ -69,7 +69,16 @@ if start_from_existing:
     previous_model_path = os.path.join(models_dir, existing_model_file)
     model = PPO.load(previous_model_path, env)
 else:
-    model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, )
+    model = PPO(policy="MlpPolicy", 
+                env=env,
+                learning_rate=3e-4
+                tensorboard_log=logs_dir,
+                normalize_advantage=True,
+                gamma=0.998,
+                gae_lambda=0.95,
+                ent_coef=0.01,
+                clip_range=0.2,
+                verbose=1, )
 
 timesteps = 0
 if start_from_existing:

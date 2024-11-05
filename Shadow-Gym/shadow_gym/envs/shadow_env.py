@@ -194,7 +194,7 @@ class ShadowEnv(gymnasium.Env):
 
         random_target_orientation_euler = random.choice(targets)
         self.target_quaternion = p.getQuaternionFromEuler(random_target_orientation_euler)
-        return self.target_quaternion
+        # return self.target_quaternion
 
 
     def step(self, action):
