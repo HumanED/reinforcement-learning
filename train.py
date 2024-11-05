@@ -71,14 +71,14 @@ if start_from_existing:
 else:
     model = PPO(policy="MlpPolicy", 
                 env=env,
-                learning_rate=3e-4
+                learning_rate=3e-4,
                 tensorboard_log=logs_dir,
                 normalize_advantage=True,
                 gamma=0.998,
                 gae_lambda=0.95,
                 ent_coef=0.01,
                 clip_range=0.2,
-                verbose=1, )
+                verbose=1,)
 
 timesteps = 0
 if start_from_existing:
