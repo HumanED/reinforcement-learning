@@ -19,10 +19,12 @@ model_path = os.path.join(os.path.dirname(__file__),"models",model_folder_zip)
 if not os.path.exists(model_path):
     raise Exception("Error: model not found")
 
+#initialise environment and normalize it
 env = gymnasium.make("ShadowEnv-v0", GUI=False)
+#make the obs values standardized (mean 0 and std 1) and scaled to fit a fixed range (e.g. -1 to 1), update scaling factor dynamically according to new values
 env = NormalizeObservation(env)
 
-
+#initialise all the containers for information
 print(f"Evaluating non recurrent PPO model {model_folder_zip}")
 model = PPO.load(model_path,env=env)
 total_success = 0
@@ -30,8 +32,10 @@ episode_count = 0
 episode_info = {}
 episode_rewards = []
 obs, info = env.reset()
+#initialise the episode info dict for each key
 for key in info.keys():
     episode_info[key] = []
+    
 for episode in tqdm(range(num_ep_evaluate)):
     terminated = False
     truncated = False
