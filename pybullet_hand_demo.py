@@ -36,7 +36,10 @@ startOrientation = p.getQuaternionFromEuler([np.pi/2, np.pi, 0])
 hand = p.loadURDF("Shadow-Gym/shadow_gym/resources/shadow_hand.urdf", startPosition, startOrientation)
 cube = p.loadURDF("Shadow-Gym/shadow_gym/resources/cube.urdf", [0, -1/3.5, 1/3])
 cube_texture = p.loadTexture("Shadow-Gym/shadow_gym/resources/cube_texture.jpg")
+debug_cube = p.loadURDF("Shadow-Gym/shadow_gym/resources/debug_cube.urdf", [1/3, 1/3, 1/3])
 p.changeVisualShape(cube, -1, textureUniqueId=cube_texture)
+p.changeVisualShape(debug_cube, -1, rgbaColor=[1.0,0.0,0.0,0.8])
+p.changeDynamics(bodyUniqueId=debug_cube, linkIndex=-1, mass=0)
 def get_join_info():
     """
     Retrieves each joint in the urdf file and provides some info
@@ -122,31 +125,6 @@ def manipulate_all_joints():
     29 - thumb finger middle (horizontal)
     30 - thumb finger tip (horizontal)
     """
-    # joint_ids = {
-    # 1: 'wrist motion (horizontal)',
-    # 2 : 'wrist motion (vertical)',
-    # 5 : 'index finger (horizontal)',
-    # 6 : 'index finger base (vertical)',
-    # 7 : 'index finger middle (vertical)',
-    # 8 : 'index finger tip (vertical)',
-    # 10 : 'middle finger (horizontal)',
-    # 11 : 'middle finger base (vertical)',
-    # 12 : 'middle finger middle (vertical)',
-    # 13 : 'middle finger tip (vertical)',
-    # 15 : 'ring finger (horizontal)',
-    # 16 : 'ring finger base (vertical)',
-    # 17 : 'ring finger middle (vertical)',
-    # 18 : 'ring finger tip (vertical)',
-    # 20 : 'little finger grasp',
-    # 21 : 'little finger (horizontal)',
-    # 22 : 'little finger base (vertical)',
-    # 23 : 'little finger middle (vertical)',
-    # 24 : 'little finger tip (vertical)',
-    # 26 : 'thumb rotation',
-    # 27 : 'thumb finger base (vertical)',
-    # 28 : 'thumb finger middle (vertical)',
-    # 29 : 'thumb finger middle (horizontal)',
-    # 30 : 'thumb finger tip (horizontal)',}
     labels = ['wrist motion (horizontal)',
     'wrist motion (vertical)',
     'index finger (horizontal)',
@@ -172,6 +150,34 @@ def manipulate_all_joints():
     'thumb finger middle (horizontal)',
     'thumb finger tip (horizontal)',]
     joint_ids = [1,2,5,6,7,8,10,11,12,13,15,16,17,18,20,21,22,23,24,26,27,28,29,30]
+    print("Number of bodies", p.getNumBodies()) # 3 bodies. Cube, hand and plane
+    # When considering the middle finger from top to bottom
+    # distal, middle, proximal, knuckle
+
+    # Finding and colouring the fingertips of the robot
+    # linkIndexes = []
+    # linkNames = []
+    # for joint_id in joint_ids:
+    #     linkName = p.getJointInfo(hand, joint_id)[12]
+    #     print(str(linkName))
+    #     if str(linkName).endswith("distal'"):
+    #         linkNames.append(linkName)
+    #         linkIndexes.append(joint_id)
+    # print(linkNames)
+    # print(linkIndexes)
+    colorIndex = 0
+    colours = [
+        [1.0, 0.0, 0.0, 1.0],
+        [0.0, 1.0, 0.0, 1.0],
+        [0.0, 0.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0, 1.0],  # White 
+        [1.0, 1.0, 0.0, 1.0],  # Yellow
+    ]
+    linkIndexes = [8, 13, 18, 24, 30]
+    for linkIndex in linkIndexes:
+        p.changeVisualShape(hand, linkIndex=linkIndex, rgbaColor=colours[colorIndex])
+        colorIndex += 1
+    
     params = []
     for i in range(len(labels)):
         param = p.addUserDebugParameter(labels[i], float(low[i]),  float(high[i]), 0)
@@ -183,7 +189,7 @@ def manipulate_all_joints():
             p.setJointMotorControl2(hand, joint_ids[i], p.POSITION_CONTROL, targetPosition=user_input)
         p.stepSimulation()
         position, orientation = p.getBasePositionAndOrientation(cube)
-        print(f"pos {position} ori {orientation}")
+        # print(f"pos {position} ori {orientation}")
         sleep(1/60)
 
 def run_sim():

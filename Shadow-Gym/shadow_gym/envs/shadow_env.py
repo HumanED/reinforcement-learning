@@ -28,6 +28,21 @@ little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571])
 thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0])
 thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571])
 
+# Allow velocity to go sligtly above the limit. Pybullet sometimes takes a few milliseconds to apply velocity limits.
+# In urdf, true non-thumb velocity limit is 2. True thumb velocity limit is 8.
+wrist_vel_low = np.array([-6.0, -6.0])
+wrist_vel_high = np.array([6.0, 6.0])
+index_vel_low = np.array([-6.0, -6.0, -6.0, -6.0])
+index_vel_high = np.array([6.0, 6.0, 6.0, 6.0])
+middle_vel_low = np.array([-6.0, -6.0, -6.0, -6.0])
+middle_vel_high = np.array([6.0, 6.0, 6.0, 6.0])
+ring_vel_low = np.array([-6.0, -6.0, -6.0, -6.0])
+ring_vel_high = np.array([6.0, 6.0, 6.0, 6.0])
+little_vel_low = np.array([-6.0, -6.0, -6.0, -6.0, -6.0])
+little_vel_high = np.array([6.0, 6.0, 6.0, 6.0, 6.0])
+thumb_vel_low = np.array([-8.0, -8.0, -8.0, -8.0, -8.0])
+thumb_vel_high = np.array([8.0, 8.0, 8.0, 8.0, 8.0])
+
 if discretize:
     wrist_bin_size = (wrist_high - wrist_low) / number_of_bins
     index_bin_size = (index_high - index_low) / number_of_bins
@@ -38,11 +53,18 @@ if discretize:
     bin_sizes = np.concatenate(
         (wrist_bin_size, index_bin_size, middle_bin_size, ring_bin_size, little_bin_size, thumb_bin_size,))
 
-hand_motion_low = np.concatenate((wrist_low, index_low, middle_low, ring_low, little_low, thumb_low))
-hand_motion_high = np.concatenate((wrist_high, index_high, middle_high, ring_high, little_high, thumb_high))
+hand_position_low = np.concatenate((wrist_low, index_low, middle_low, ring_low, little_low, thumb_low))
+hand_position_high = np.concatenate((wrist_high, index_high, middle_high, ring_high, little_high, thumb_high))
 
-hand_velocity_high = np.array([np.inf] * 96)
-hand_velocity_low = np.array([-np.inf] * 96)
+hand_vel_low = np.concatenate((wrist_vel_low, index_vel_low, middle_vel_low, ring_vel_low, little_vel_low, thumb_vel_low))
+hand_vel_high = np.concatenate((wrist_vel_high, index_vel_high, middle_vel_high, ring_vel_high, little_vel_high, thumb_vel_high))
+
+fingertip_position_high = np.array([5] * 15)
+fingertip_position_low = np.array([-5] * 15)
+
+# hand_velocity_high = np.array([np.inf] * 96)
+# hand_velocity_low = np.array([-np.inf] * 96)
+
 
 cube_pos_low = np.array([-5,-5,-5])
 cube_pos_high = np.array([5,5,5])
@@ -111,13 +133,13 @@ class ShadowEnv(gymnasium.Env):
             self.action_space = gymnasium.spaces.MultiDiscrete(nvec=[11] * 24)
         else:
             self.action_space = gymnasium.spaces.box.Box(
-                low=hand_motion_low,
-                high=hand_motion_high
+                low=hand_position_low,
+                high=hand_position_high
             )
         self.observation_space = gymnasium.spaces.Box(
-            low=np.concatenate((hand_motion_low, hand_velocity_low, 
+            low=np.concatenate((hand_position_low, hand_vel_low, fingertip_position_low, 
                                 cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low)),
-            high=np.concatenate((hand_motion_high, hand_velocity_high,
+            high=np.concatenate((hand_position_high, hand_vel_high, fingertip_position_high,
                                 cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high)),
         )
 
@@ -163,22 +185,36 @@ class ShadowEnv(gymnasium.Env):
     def get_hand_observation(self) -> np.ndarray:
         """
         Returns
-        24 joint positions (not cartesian x,y,z but a singular angle value in radians. View high and low values and shadow hand docs for more info)
-        link velocities relative to Cartesian world (not local frame). View Pybullet docs on getJointState method
+        24 joint positions (not cartesian x,y,z) but a singular angle value in radians. View high and low values and shadow hand docs for more info.
+        and 24 link velocities (radians per second) of each joint.
+        Please view Pybullet docs for more info
+
+        hand_observation is [24 numbers on jointPosition, 24 numbers on joint Velocity]
+        e.g. hand_observation[0] is joint position (radians) for joints 1 and hand_observation[24] is joint velocity (radians / second) for joint 1
         """
-        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30] #24 joints
-        joint_position = []
+        joints = [1, 2, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30] # 24 joints
+        num_joints = len(joints)
+        fingertip_link_ids = [8, 13, 18, 24, 30]
+        num_fingertips = len(fingertip_link_ids)
+        
+        hand_observation = np.zeros((num_joints * 2) + (num_fingertips * 3), dtype=np.float32)
+        for i in range(num_joints):
+            joint_id = joints[i]
+            # Joint position in radians.
+            joint_state = p.getJointState(self.hand.hand_body, joint_id)
+            hand_observation[i] = joint_state[0]
+            # Joint velocity in radians / second.
+            hand_observation[i + 24] = joint_state[1]
 
-        # Adding the velocities (x,y,z) of each link
-        num_links = p.getNumJoints(self.hand.hand_body)
-        link_velocity = []
-        for i in range(num_links):
-            link_velocity.extend(p.getLinkState(self.hand.hand_body, i, computeLinkVelocity=True)[7])
-
-        for joint_id in joints:
-            joint_position.append(p.getJointState(self.hand.hand_body, joint_id)[0])
-
-        return np.array(joint_position + link_velocity, dtype=np.float32)
+        i = num_joints * 2
+        for link_id in fingertip_link_ids:
+            # Get Cartesian position of center of mass. Temporary measure until real hand is created
+            link_position = p.getLinkState(self.hand.hand_body, linkIndex=link_id)[0]
+            hand_observation[i] = link_position[0]
+            hand_observation[i+1] = link_position[1]
+            hand_observation[i+2] = link_position[2]
+            i += 3
+        return hand_observation
 
         
     def newtarget(self): 
@@ -201,7 +237,7 @@ class ShadowEnv(gymnasium.Env):
         self.num_steps += 1
         if discretize:
             # Convert discrete action choice from the AI to a continuous action for the motor.
-            action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+            action = hand_position_low + (bin_sizes / 2) + (bin_sizes * action)
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.

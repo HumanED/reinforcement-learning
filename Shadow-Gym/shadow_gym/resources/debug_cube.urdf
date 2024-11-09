@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="block_2">
+  <link name="block_2_base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="0.03 0.03 0.03"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

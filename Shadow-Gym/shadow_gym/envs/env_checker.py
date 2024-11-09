@@ -4,3 +4,5 @@ from shadow_gym.envs.shadow_env import ShadowEnv
 env = ShadowEnv()
 check_env(env)
 print("All ok")
+print("Action space shape",env.action_space.shape)
+print("Observation space shape", env.observation_space.shape)

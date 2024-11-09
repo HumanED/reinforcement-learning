@@ -203,7 +203,7 @@
         </geometry>
       </collision>
     </link>
-    <!-- rh_manipulator not seen on other implementations of pybullet environment. It is unnecessary. Ignore warnings. Do not comment out below code since it affects joint indexes-->
+    <!-- (Ethan note) rh_manipulator not seen on other implementations of pybullet environment. It is unnecessary. Ignore urdf warnings. Do not comment out below code since it affects joint indexes-->
     <!-- https://github.com/szahlner/shadowhand-gym/blob/master/shadowhand_gym/envs/assets/urdf/shadow_hand.urdf -->
     <joint name="rh_ee_fixed_joint" type="fixed">
       <parent link="rh_palm"/>
