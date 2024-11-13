@@ -99,6 +99,25 @@ def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarr
     return np.array([q_x, q_y, q_z, q_w])
 
 
+ALPHA = 0.3
+# Initialize EMA with a smoothing factor
+# Lower alpha = smoother changes, higher = EMA more responsive to recent changes
+
+# Exponential Moving Average
+class EMA:
+    def __init__(self, alpha):
+        self.alpha = alpha
+        self.value = None
+
+    def update(self, new_value):
+        # Checks if value is the first value
+        if self.value is None:
+            self.value = new_value
+        # Blends new value with average, more weight to recent values
+        else:
+            self.value = self.alpha * new_value + (1 - self.alpha) * self.value
+        return self.value
+
 class ShadowEnv(gymnasium.Env):
     """
     :param bool GUI: `GUI=True` after training. `GUI=False` for during training
@@ -141,6 +160,7 @@ class ShadowEnv(gymnasium.Env):
         self.terminated = False
         self.truncated = False
         self.reward = None
+        self.ema = EMA(ALPHA)  # Initialize EMA with alpha = 0.3
         self.info = {}
         self.reset()
 
@@ -185,6 +205,9 @@ class ShadowEnv(gymnasium.Env):
         if discretize:
             # Convert discrete action choice from the AI to a continuous action for the motor.
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+
+        # Smooth the action using EMA
+        action = np.array([self.ema.update(a) for a in action])
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
