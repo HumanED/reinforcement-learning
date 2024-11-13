@@ -258,7 +258,7 @@ class ShadowEnv(gymnasium.Env):
             self.reward = self.previous_rotation_to_target - rotation_to_target
         # We are less than 0.4 radians (23 degrees to target)
         if rotation_to_target < 0.4:
-            self.newtarget()
+            # self.newtarget()
             self.reward = 5
             self.info["success"] = 1
 
@@ -278,7 +278,7 @@ class ShadowEnv(gymnasium.Env):
     def reset(self, seed=None, options={}):
         self.seed(seed)
 
-        self.newtarget()
+        # self.newtarget() 
 
         random_orientation_euler = (random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2,
