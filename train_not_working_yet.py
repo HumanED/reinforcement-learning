@@ -20,11 +20,11 @@ Much more advanced training code. Still in development.
 recurrent = False
 vectorized_env = True  # Set to True to use multiple environments
 normalized_env = False
-start_from_existing = False
-existing_model_file = ""  # no need .zip extension
+start_from_existing = True
+existing_model_file = "9700000"  # no need .zip extension
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "21" + "-" + "shadowgym-ethan"
+run_name = "PPO" + "-" + "20" + "-" + "shadowgym-ethan"
 saving_timesteps_interval = 25_000
 start_saving = 400_000
 
