@@ -134,6 +134,8 @@ class ShadowEnv(gymnasium.Env):
         self.rendered_img = None
         self.num_steps = 0
 
+        self.previous_ema = None
+        self.alpha = 0.3 # EMA smoothing factor
         self.previous_rotation_to_target = None
         self.target_euler = [0, 0, 0] # Yellow is up
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
@@ -179,12 +181,23 @@ class ShadowEnv(gymnasium.Env):
             joint_position.append(p.getJointState(self.hand.hand_body, joint_id)[0])
 
         return np.array(joint_position + link_velocity, dtype=np.float32)
+    
+
+    def ema(self, previous_ema, new_action, alpha=0.3):
+        return alpha * new_action + (1 - alpha) * previous_ema
 
     def step(self, action):
         self.num_steps += 1
         if discretize:
             # Convert discrete action choice from the AI to a continuous action for the motor.
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+        
+        # Apply EMA for action smoothing
+        if self.previous_ema is None:
+            self.previous_ema = action
+        else:
+            action = self.ema(self.previous_ema, action, self.alpha)
+            self.previous_ema = action
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
