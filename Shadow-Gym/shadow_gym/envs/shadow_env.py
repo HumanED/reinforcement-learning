@@ -136,7 +136,7 @@ class ShadowEnv(gymnasium.Env):
 
         self.previous_ema = None
         self.alpha = 0.3 # EMA smoothing factor
-        
+
         self.previous_rotation_to_target = None
         self.target_euler = [0, 0, 0] # Yellow is up
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
@@ -201,7 +201,10 @@ class ShadowEnv(gymnasium.Env):
             self.previous_ema = action
 
         # Ensure action is within valid range
-        action = np.clip(action, self.action_space.low, self.action_space.high)
+        if isinstance(self.action_space, gymnasium.spaces.MultiDiscrete):
+            action = np.clip(action, 0, self.action_space.nvec - 1)
+        else:
+            action = np.clip(action, self.action_space.low, self.action_space.high)
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
