@@ -195,10 +195,11 @@ class ShadowEnv(gymnasium.Env):
         
         # Apply EMA for action smoothing
         if self.previous_ema is None:
-            self.previous_ema = action
+            self.previous_ema = np.copy(action)
         else:
-            action = self.ema(self.previous_ema, action, self.alpha)
-            self.previous_ema = action
+            for i in range(len(action)):
+                action[i] = self.ema(self.previous_ema[i], action[i], self.alpha)
+            self.previous_ema = np.copy(action)
 
         # Ensure action is within valid range
         if isinstance(self.action_space, gymnasium.spaces.MultiDiscrete):
