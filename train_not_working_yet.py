@@ -21,7 +21,11 @@ recurrent = False
 vectorized_env = True  # Set to True to use multiple environments
 normalized_env = False
 start_from_existing = True
-existing_model_file = "9700000"  # no need .zip extension
+existing_model_file = "11 500 000"  # no need .zip extension
+# When you want to train PPO-20-shadowgym-ethan more and create PPO-21-shadowgym-ethan
+# Set new_run_name="PPO-21-shadowgym-ethan" and run_name="PPO-20-shadowgym-ethan"
+# A PPO-21 folder is created for the logs and models of the rerun.
+new_run_name = "PPO-21-shadowgym-ethan" 
 
 # Run name should have model, unique number, and optionally a description
 run_name = "PPO" + "-" + "20" + "-" + "shadowgym-ethan"
@@ -109,10 +113,10 @@ if __name__ == "__main__":
 
     timesteps = 0
     while True:
-        model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False) #, callback=console_logger)
+        model.learn(saving_timesteps_interval, tb_log_name=new_run_name, reset_num_timesteps=False) #, callback=console_logger)
         timesteps += saving_timesteps_interval
         if timesteps >= start_saving:
-            model.save(f"{models_dir}/{run_name}/{timesteps}")
+            model.save(f"{models_dir}/{new_run_name}/{timesteps}")
             if vectorized_env and normalized_env:
                 normalize_stats_path = os.path.join(normalize_stats, run_name, str(timesteps) + '.pkl')
                 env.save(normalize_stats_path)
