@@ -217,6 +217,9 @@ class ShadowEnv(gymnasium.Env):
         cube_observation = self.get_cube_observation(self.target_quaternion)
         observation = np.concatenate((hand_observation, cube_observation))
 
+        # Clip the observation to ensure it is within the valid range
+        observation = np.clip(observation, self.observation_space.low, self.observation_space.high)
+
         # Reward calculations
         cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
         rotation_to_target = calculate_angular_difference(self.target_quaternion, cube_orientation_q)
