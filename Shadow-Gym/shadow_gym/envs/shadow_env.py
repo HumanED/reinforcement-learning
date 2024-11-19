@@ -23,8 +23,8 @@ middle_low = np.array([-0.349, 0.0, 0.0, 0.0])
 middle_high = np.array([0.349, 1.571, 1.571, 1.571])
 ring_low = np.array([-0.349, 0.0, 0.0, 0.0])
 ring_high = np.array([0.349, 1.571, 1.571, 1.571])
-little_low = np.array([0.0, -0.349, 0.0, 0.0, 0.0])
-little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571])
+little_low = np.array([0.0, -0.3, 0.0, 0.0, 0.0])  # Adjusted range for little
+little_high = np.array([0.7, 0.3, 1.5, 1.5, 1.5])  # Adjusted range for little
 thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0])
 thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571])
 
@@ -183,8 +183,10 @@ class ShadowEnv(gymnasium.Env):
 
         return np.array(joint_position + link_velocity, dtype=np.float32)
     
-
-    def ema(self, previous_ema, new_action, alpha=0.3):
+    def ema(self, previous_ema, new_action, alpha):
+        """
+        Applies EMA independently to each joint group or action.
+        """
         return alpha * new_action + (1 - alpha) * previous_ema
 
     def step(self, action):
@@ -207,6 +209,9 @@ class ShadowEnv(gymnasium.Env):
             
         action = self.ema(self.previous_ema, action, self.alpha)
         self.previous_ema = np.copy(action)
+
+        # Clip action to valid range
+        action = np.clip(action, hand_motion_low, hand_motion_high)
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
