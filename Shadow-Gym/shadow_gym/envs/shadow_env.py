@@ -285,6 +285,9 @@ class ShadowEnv(gymnasium.Env):
         self.info["ep_steps"] = self.num_steps
         self.info["success"] = 0
 
+        # Reset EMA
+        self.previous_ema = None
+
         # Initial observation
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
