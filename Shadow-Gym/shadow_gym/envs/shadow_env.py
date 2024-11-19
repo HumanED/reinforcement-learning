@@ -193,19 +193,20 @@ class ShadowEnv(gymnasium.Env):
             # Convert discrete action choice from the AI to a continuous action for the motor.
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
         
-        # Apply EMA for action smoothing
+    
+        # Apply smoothing to action via EMA
         if self.previous_ema is None:
-            self.previous_ema = np.copy(action)
-        else:
-            for i in range(len(action)):
-                action[i] = self.ema(self.previous_ema[i], action[i], self.alpha)
-            self.previous_ema = np.copy(action)
-
-        # Ensure action is within valid range
-        if isinstance(self.action_space, gymnasium.spaces.MultiDiscrete):
-            action = np.clip(action, 0, self.action_space.nvec - 1)
-        else:
-            action = np.clip(action, self.action_space.low, self.action_space.high)
+            # Start in a neutral position: halfway between the low and high limits
+            self.previous_ema = (hand_motion_low + hand_motion_high) / 2
+    
+            # Add a small random noise for exploration (optional)
+            noise_scale = 0.05  # Adjust this to control randomness
+            self.previous_ema += self.np_random.uniform(
+                low=-noise_scale, high=noise_scale, size=self.previous_ema.shape
+            )
+            
+        action = self.ema(self.previous_ema, action, self.alpha)
+        self.previous_ema = np.copy(action)
 
         self.hand.apply_action(action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
@@ -216,9 +217,6 @@ class ShadowEnv(gymnasium.Env):
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
         observation = np.concatenate((hand_observation, cube_observation))
-
-        # Clip the observation to ensure it is within the valid range
-        observation = np.clip(observation, self.observation_space.low, self.observation_space.high)
 
         # Reward calculations
         cube_orientation_q = p.getBasePositionAndOrientation(self.cube.cube_body)[1]
