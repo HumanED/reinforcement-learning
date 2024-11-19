@@ -23,8 +23,8 @@ middle_low = np.array([-0.349, 0.0, 0.0, 0.0])
 middle_high = np.array([0.349, 1.571, 1.571, 1.571])
 ring_low = np.array([-0.349, 0.0, 0.0, 0.0])
 ring_high = np.array([0.349, 1.571, 1.571, 1.571])
-little_low = np.array([0.0, -0.3, 0.0, 0.0, 0.0])  # Adjusted range for little
-little_high = np.array([0.7, 0.3, 1.5, 1.5, 1.5])  # Adjusted range for little
+little_low = np.array([0.0, -0.349, 0.0, 0.0, 0.0])
+little_high = np.array([0.785, 0.349, 1.571, 1.571, 1.571])
 thumb_low = np.array([-0.960, 0.0, -0.209, -0.436, 0.0])
 thumb_high = np.array([0.960, 1.222, 0.209, 0.436, 1.571])
 
@@ -134,7 +134,7 @@ class ShadowEnv(gymnasium.Env):
         self.rendered_img = None
         self.num_steps = 0
 
-        self.previous_ema = None
+        self.previous_ema = {finger: None for finger in ['wrist', 'index', 'middle', 'ring', 'little', 'thumb']}
         self.alpha = 0.3 # EMA smoothing factor
 
         self.previous_rotation_to_target = None
@@ -191,29 +191,32 @@ class ShadowEnv(gymnasium.Env):
 
     def step(self, action):
         self.num_steps += 1
-        if discretize:
-            # Convert discrete action choice from the AI to a continuous action for the motor.
-            action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
         
-    
-        # Apply smoothing to action via EMA
-        if self.previous_ema is None:
-            # Start in a neutral position: halfway between the low and high limits
-            self.previous_ema = (hand_motion_low + hand_motion_high) / 2
-    
-            # Add a small random noise for exploration (optional)
-            noise_scale = 0.05  # Adjust this to control randomness
-            self.previous_ema += self.np_random.uniform(
-                low=-noise_scale, high=noise_scale, size=self.previous_ema.shape
-            )
-            
-        action = self.ema(self.previous_ema, action, self.alpha)
-        self.previous_ema = np.copy(action)
+        if discretize:
+            action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
 
-        # Clip action to valid range
-        action = np.clip(action, hand_motion_low, hand_motion_high)
+        action_dict = {
+            'wrist': action[:2],
+            'index': action[2:6],
+            'middle': action[6:10],
+            'ring': action[10:14],
+            'little': action[14:19],
+            'thumb': action[19:]
+        }
 
-        self.hand.apply_action(action)
+        for finger, bounds in zip(self.previous_ema.keys(),
+                                  [(wrist_low, wrist_high), (index_low, index_high), (middle_low, middle_high),
+                                   (ring_low, ring_high), (little_low, little_high), (thumb_low, thumb_high)]):
+            low, high = bounds
+            if self.previous_ema[finger] is None:
+                self.previous_ema[finger] = (low + high) / 2
+            action_dict[finger] = self.ema(self.previous_ema[finger], action_dict[finger], self.alpha)
+            self.previous_ema[finger] = np.clip(action_dict[finger], low, high)
+
+        # Combine all actions into a single array
+        combined_action = np.concatenate([action_dict[finger] for finger in self.previous_ema.keys()])
+        
+        self.hand.apply_action(combined_action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
         # Consider simulation time the same as real life time when robot is deployed
         for _ in range(20):
@@ -289,7 +292,14 @@ class ShadowEnv(gymnasium.Env):
         self.info["success"] = 0
 
         # Reset EMA
-        self.previous_ema = None
+        self.previous_ema = {
+            'wrist': (wrist_low + wrist_high) / 2,
+            'index': (index_low + index_high) / 2,
+            'middle': (middle_low + middle_high) / 2,
+            'ring': (ring_low + ring_high) / 2,
+            'little': (little_low + little_high) / 2,
+            'thumb': (thumb_low + thumb_high) / 2
+        }
 
         # Initial observation
         hand_observation = self.get_hand_observation()

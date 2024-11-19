@@ -13,7 +13,7 @@ normalized_env = False
 # Set num_evaluate to -1 to enable rendering and just view the project
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-04-shadowgym-peter-noiseEMA"
+run_name = "PPO-04-shadowgym-peter-EMAv1"
 model_file = "300000.zip"
 normalize_stats_file = "1800000.pkl"
 
