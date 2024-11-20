@@ -210,17 +210,13 @@ class ShadowEnv(gymnasium.Env):
                                (ring_low, ring_high), (little_low, little_high), (thumb_low, thumb_high)]):
             low, high = bounds
 
-            # If EMA is not initialized, set to the middle value of the range
             if self.previous_ema[finger] is None:
                 self.previous_ema[finger] = (low + high) / 2
-        
-            # Apply EMA smoothing
+    
             smoothed_action = self.ema(self.previous_ema[finger], action_dict[finger], self.alpha)
 
-            # Clip action within the allowed bounds for each finger
             smoothed_action = np.clip(smoothed_action, low, high)
 
-            # Update action dict with the smoothed and clipped action
             action_dict[finger] = smoothed_action
 
             # Update the EMA for the next step
