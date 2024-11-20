@@ -191,7 +191,7 @@ class ShadowEnv(gymnasium.Env):
 
     def step(self, action):
         self.num_steps += 1
-        
+
         if discretize:
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
 
@@ -204,17 +204,31 @@ class ShadowEnv(gymnasium.Env):
             'thumb': action[19:]
         }
 
+        # Apply EMA smoothing independently to each finger's action
         for finger, bounds in zip(self.previous_ema.keys(),
-                                  [(wrist_low, wrist_high), (index_low, index_high), (middle_low, middle_high),
-                                   (ring_low, ring_high), (little_low, little_high), (thumb_low, thumb_high)]):
+                              [(wrist_low, wrist_high), (index_low, index_high), (middle_low, middle_high),
+                               (ring_low, ring_high), (little_low, little_high), (thumb_low, thumb_high)]):
             low, high = bounds
+
+            # If EMA is not initialized, set to the middle value of the range
             if self.previous_ema[finger] is None:
                 self.previous_ema[finger] = (low + high) / 2
-            action_dict[finger] = self.ema(self.previous_ema[finger], action_dict[finger], self.alpha)
-            self.previous_ema[finger] = np.clip(action_dict[finger], low, high)
+        
+            # Apply EMA smoothing
+            smoothed_action = self.ema(self.previous_ema[finger], action_dict[finger], self.alpha)
 
-        # Combine all actions into a single array
+            # Clip action within the allowed bounds for each finger
+            smoothed_action = np.clip(smoothed_action, low, high)
+
+            # Update action dict with the smoothed and clipped action
+            action_dict[finger] = smoothed_action
+
+            # Update the EMA for the next step
+            self.previous_ema[finger] = smoothed_action
+
+        # Combine all individual actions back into a single array for the full action
         combined_action = np.concatenate([action_dict[finger] for finger in self.previous_ema.keys()])
+
         
         self.hand.apply_action(combined_action)
         # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
