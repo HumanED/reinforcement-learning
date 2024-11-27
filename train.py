@@ -19,9 +19,13 @@ existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no n
 re_run_name = "PPO-17c-shadowgym-rerun-3"
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-22-shadowgym-ethan"
+run_name = "PPO-22b-shadowgym-ethan"
 saving_timesteps_interval = 25_000
 start_saving = 500_000
+# Random seed for numpy and random
+seed = 0 
+if seed != None:
+    np.random.seed(seed)
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
@@ -59,7 +63,7 @@ def get_old_model(run_dir) -> str:
         return os.path.join(run_dir, file)
     return ""
 
-env = gymnasium.make("ShadowEnv-v0", GUI=False)
+env = gymnasium.make("ShadowEnv-v0", GUI=False, seed=seed)
 env = NormalizeObservation(env)
 env = TransformObservation(env,f=clip_observation)
 env = Monitor(env)

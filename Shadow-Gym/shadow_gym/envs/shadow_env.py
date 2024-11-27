@@ -127,7 +127,7 @@ class ShadowEnv(gymnasium.Env):
     """
     metadata = {'render_modes': ['human']}
 
-    def __init__(self, GUI=False):
+    def __init__(self, GUI=False, seed=None):
         if discretize:
             # 11 bins for each of the 24 actions
             self.action_space = gymnasium.spaces.MultiDiscrete(nvec=[11] * 24)
@@ -164,7 +164,7 @@ class ShadowEnv(gymnasium.Env):
         self.truncated = False
         self.reward = None
         self.info = {}
-        self.reset()
+        self.reset(seed)
 
     def get_cube_observation(self, target_orientation_q: list[int]) -> np.ndarray:
         """
@@ -276,7 +276,7 @@ class ShadowEnv(gymnasium.Env):
 
 
     def reset(self, seed=None, options={}):
-        self.seed(seed)
+        self.seed(seed) 
 
         # self.newtarget() 
 
@@ -355,4 +355,5 @@ class ShadowEnv(gymnasium.Env):
 
     def seed(self, seed=None):
         self.np_random, seed = gymnasium.utils.seeding.np_random(seed)
+        random.seed(seed)
         return [seed]
