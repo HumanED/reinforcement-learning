@@ -333,5 +333,5 @@ def run_sim():
         sleep(1/60)
 
 # manipulate_joint(30)
-manipulate_all_joints()
-# stress_test()
+# manipulate_all_joints()
+stress_test()
