@@ -101,7 +101,7 @@ def calculate_angular_difference(orientation1, orientation2):
 
 def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarray:
     """
-    Converts angular velocity expressed as radians per second [wx, wy, wz] to quaternion [w, x, y, z]
+    Converts angular velocity expressed as radians per second [wx, wy, wz] to quaternion [x, y ,z, w]
     View https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
     and 
     https://math.stackexchange.com/questions/39553/how-do-i-apply-an-angular-velocity-vector3-to-a-unit-quaternion-orientation
