@@ -5,7 +5,7 @@ import gymnasium
 from gymnasium.wrappers.normalize import NormalizeObservation
 from gymnasium.wrappers.transform_observation import TransformObservation
 import numpy as np
-import shadow_gym
+import shadow_gym # type: ignore
 
 """
 Author: Ethan Cheam
@@ -15,13 +15,14 @@ Trains a PPO model, saves models at regular intervals, and record training perfo
 # SETTINGS
 # When starting from an existing model, run_name is name of original run and rerun_name is name of logs and models of the new run
 start_from_existing = True
-existing_model_file = os.path.join("PPO-17c-shadowgym=rerun-2","1000000") # no need .zip extension
-re_run_name = "PPO-17c-shadowgym-rerun-3"
+existing_model_file = os.path.join("PPO-22c-shadowgym-ethan-r3","375000") # no need .zip extension
+re_run_name = "PPO-22c-shadowgym-ethan-r4"
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO-17c-shadowgym"
-saving_timesteps_interval = 100_000
-start_saving = 500_000
+run_name = "PPO-22c-shadowgym-ethan"
+saving_timesteps_interval = 25_000
+start_saving = 300_000
+seed = 0
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
@@ -59,7 +60,7 @@ def get_old_model(run_dir) -> str:
         return os.path.join(run_dir, file)
     return ""
 
-env = gymnasium.make("ShadowEnv-v0", GUI=False)
+env = gymnasium.make("ShadowEnv-v0", GUI=False,seed=seed)
 env = NormalizeObservation(env)
 env = TransformObservation(env,f=clip_observation)
 env = Monitor(env)
@@ -69,9 +70,21 @@ if start_from_existing:
     previous_model_path = os.path.join(models_dir, existing_model_file)
     model = PPO.load(previous_model_path, env)
 else:
-    model = PPO(policy="MlpPolicy", env=env, tensorboard_log=logs_dir, normalize_advantage=True, verbose=1, )
+    model = PPO(policy="MlpPolicy", 
+                env=env,
+                learning_rate=3e-4,
+                tensorboard_log=logs_dir,
+                normalize_advantage=True,
+                gamma=0.998,
+                gae_lambda=0.95,
+                ent_coef=0.01,
+                clip_range=0.2,
+                verbose=1,)
 
 timesteps = 0
+if start_from_existing:
+    # Override run_name for below argument to tb_log_name
+    run_name = re_run_name
 while True:
     model.learn(saving_timesteps_interval, tb_log_name=run_name, reset_num_timesteps=False)
     timesteps += saving_timesteps_interval
