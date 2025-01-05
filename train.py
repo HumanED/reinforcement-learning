@@ -2,7 +2,7 @@ import os
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 import gymnasium
-from gymnasium.wrappers.normalize import NormalizeObservation
+from gymnasium.wrappers import NormalizeObservation
 from gymnasium.wrappers.transform_observation import TransformObservation
 import numpy as np
 import shadow_gym

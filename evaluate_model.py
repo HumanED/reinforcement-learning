@@ -2,7 +2,7 @@ import os
 import time
 from statistics import mean, stdev
 from stable_baselines3 import PPO
-from gymnasium.wrappers.normalize import NormalizeObservation
+from gymnasium.wrappers import NormalizeObservation
 import numpy as np
 import gymnasium
 import shadow_gym
