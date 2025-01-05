@@ -19,14 +19,18 @@
 
 `Shadow-Gym/shadow-gym/resources/cube_colour_visualiser.py` - utility script to view the hand environment with gravity turned off
 
+`pybullet_hand_demo.py` - utility script to view the names and location of each hand joint. Hand joint should be restricted according to observation space.
+
+`Shadow-Gym/shadow_gym/envs/env_checker.py` - utility script to check if shadow_env.py is a valid Gymnasium environemnt. It flags the "obs is outside observation space" warning with explaination suggesting it is mere floating point problem.
+
 ### Installation Instructions
 (Recommended) Create a virtual environment with conda or venv  
 
 Enter the `Shadow-Gym` folder (folder with setup.py)  
 Run `pip install -e .` to install other required packages for the hand model
 
-For the AI modules run
-`pip install stable_baselines3 tensorboard`
+Secondly, For the AI modules run
+`pip install stable_baselines3 protobuf==4.25 tensorboard`
 
 ## Github recommendation
 Try following this training loop
@@ -34,4 +38,5 @@ Try following this training loop
 2. Train model
 3. Visualise and evalute model
 4. Commit all files (model, logs and environment code) to git
-5. ONLY AFTER COMMITTING, modify environment/training code
+5. Record a 5 minute video and write short report in provided excel sheet
+6. ONLY AFTER COMMITTING, modify environment/training code

@@ -8,11 +8,10 @@ from shadow_gym.resources.plane import Plane
 from shadow_gym.resources.cube import Cube
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
-from pyquaternion import Quaternion
+
 import random
 
 
-# Changed by Ethan
 discretize = True
 number_of_bins = 11
 
@@ -59,14 +58,19 @@ cube_angular_vel_q_high = np.array([1,1,1,1])
 
 def calculate_angular_difference(orientation1, orientation2):
     """
-    Calculates angular difference in radians between two quaternions
-    :param orientation1: List[int]
-    :param orientation2: List[int]
+    Calculates angular difference in radians between two quaternions. Quaternion is list of [x, y, z, w]  
+    :param list orientation1:  
+    :param list orientation1:  
+    See  
+    Angular difference between quaternions: https://uk.mathworks.com/help/driving/ref/quaternion.dist.html
+    Magnitude of axis-angle notation (also known as rotation vector notation) is angle: https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
+    Default numpy norn on vectors is euclidean norm https://en.wikipedia.org/wiki/Norm_(mathematics)#:~:text=In%20particular%2C%20the%20Euclidean%20distance,of%20a%20vector%20with%20itself.
+    Tested by Ethan 12/9/24
     """
     rot1 = Rotation.from_quat(orientation1)
     rot2 = Rotation.from_quat(orientation2)
-    # .inv() is transform of the rotation matrix
-    angular_difference = rot1.inv() * rot2
+    # .inv() is inverse (aka conjugate) of the quaternion
+    angular_difference = rot1 * rot2.inv()
     #  axis-angle representation of angular difference
     axis_angle = angular_difference.as_rotvec()
     # Convert angular difference into axis-angle representation
@@ -79,19 +83,20 @@ def angular_velocity_to_quaternion(omega: list[int], delta_t: int=1) -> np.ndarr
     View https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions
     and 
     https://math.stackexchange.com/questions/39553/how-do-i-apply-an-angular-velocity-vector3-to-a-unit-quaternion-orientation
+    Below is slightly modified version of formula for converting Euler angles to quaternion.
     """
     wx, wy, wz = omega
     omega_mag = np.sqrt(wx**2 + wy**2 + wz**2)
     if omega_mag == 0:
         # No rotation
-        return np.array([1,0,0,0])
+        return np.array([0,0,0,1])
     theta = omega_mag * delta_t
     ux, uy, uz = wx / omega_mag, wy / omega_mag, wz / omega_mag
     q_w = np.cos(theta / 2)
     q_x = ux * np.sin(theta / 2)
     q_y = uy * np.sin(theta / 2)
     q_z = uz * np.sin(theta / 2)
-    return np.array([q_w, q_x, q_y, q_z])
+    return np.array([q_x, q_y, q_z, q_w])
 
 
 class ShadowEnv(gymnasium.Env):
@@ -110,21 +115,19 @@ class ShadowEnv(gymnasium.Env):
                 high=hand_motion_high
             )
         self.observation_space = gymnasium.spaces.Box(
-            # Cube observation is 7 digit ndarray with position (x,y,z) and relative quaternion (w,x,y,z),
-            # orientation in quaternion (a,b,c,d), linear velocity (x,y,z) and angular velocity (wx, wy,  wz)
             low=np.concatenate((hand_motion_low, hand_velocity_low, 
                                 cube_pos_low, cube_orientation_q_low, cube_relative_q_low, cube_linear_vel_low, cube_angular_vel_q_low)),
             high=np.concatenate((hand_motion_high, hand_velocity_high,
                                 cube_pos_high, cube_orientation_q_high, cube_relative_q_high, cube_linear_vel_high, cube_angular_vel_q_high)),
         )
 
-        self.np_random, _ = gymnasium.utils.seeding.np_random() # not applicable to gymnasium
+        self.np_random, _ = gymnasium.utils.seeding.np_random()
         if GUI:
             self.client = p.connect(p.GUI)
         else:
             self.client = p.connect(p.DIRECT)
 
-        p.setTimeStep(1 / 30, self.client)
+        p.setTimeStep(1 / 240, self.client)
 
         self.hand = None
         self.cube = None
@@ -132,12 +135,13 @@ class ShadowEnv(gymnasium.Env):
         self.num_steps = 0
 
         self.previous_rotation_to_target = None
-        self.target_euler = [0, 0, 0]
+        self.target_euler = [0, 0, 0] # Yellow is up
         self.target_quaternion = p.getQuaternionFromEuler(self.target_euler)
-        self.STEP_LIMIT = 300  # Given a timestep is 1/30 seconds.
-        self.episodes_before_change = 100
-        self.episode_counter = 0
+        self.STEP_LIMIT = 150
+        self.terminated = False
+        self.truncated = False
         self.reward = None
+        self.info = {}
         self.reset()
 
     def get_cube_observation(self, target_orientation_q: list[int]) -> np.ndarray:
@@ -151,10 +155,9 @@ class ShadowEnv(gymnasium.Env):
         position, orientation_quaternion = p.getBasePositionAndOrientation(self.cube.cube_body)
         linear_vel, angular_vel = p.getBaseVelocity(self.cube.cube_body)
         angular_vel_q = angular_velocity_to_quaternion(omega=angular_vel, delta_t=1)
-        q1 = Quaternion(target_orientation_q)
-        q2 = Quaternion(orientation_quaternion)
-        relative_q = q1 * q2.inverse
-        relative_q = list(relative_q)
+        q1 = Rotation.from_quat(target_orientation_q)
+        q2 = Rotation.from_quat(orientation_quaternion)
+        relative_q = (q1 * q2.inv()).as_quat()
         return np.concatenate((position, orientation_quaternion, relative_q, linear_vel, angular_vel_q),dtype=np.float32)
 
     def get_hand_observation(self) -> np.ndarray:
@@ -177,6 +180,23 @@ class ShadowEnv(gymnasium.Env):
 
         return np.array(joint_position + link_velocity, dtype=np.float32)
 
+        
+    def newtarget(self): 
+        targets = [
+            [0, 0, 0], 
+            [np.pi/2, 0, 0], 
+            [-np.pi/2, 0, 0], 
+            [0, np.pi/2, 0], 
+            [0, -np.pi/2, 0], 
+            [np.pi, 0, 0], 
+            [0, 0, np.pi]
+            ]
+
+        random_target_orientation_euler = random.choice(targets)
+        self.target_quaternion = p.getQuaternionFromEuler(random_target_orientation_euler)
+        return self.target_quaternion
+
+
     def step(self, action):
         self.num_steps += 1
         if discretize:
@@ -184,11 +204,13 @@ class ShadowEnv(gymnasium.Env):
             action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
 
         self.hand.apply_action(action)
-        p.stepSimulation()
+        # Each simulation step is 4 ms but each environment step has 20 simulation step so is 80 ms of simulation time.
+        # Consider simulation time the same as real life time when robot is deployed
+        for _ in range(20):
+            p.stepSimulation()
 
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
-
         observation = np.concatenate((hand_observation, cube_observation))
 
         # Reward calculations
@@ -198,12 +220,13 @@ class ShadowEnv(gymnasium.Env):
             self.reward = 0
         else:
             self.reward = self.previous_rotation_to_target - rotation_to_target
-
+        # We are less than 0.4 radians (23 degrees to target)
         if rotation_to_target < 0.4:
-            # We are less than 0.4 radians (23 degrees to target)
+            self.newtarget()
             self.reward = 5
-            self.terminated = True
-            self.info["success"] = True
+            self.info["success"] = 1
+
+        # Termination conditions
         if cube_observation[2] < 0.05:
             # Cube is dropped
             self.reward = -20
@@ -215,46 +238,54 @@ class ShadowEnv(gymnasium.Env):
 
         return observation, self.reward, self.terminated, self.truncated, self.info
 
+
     def reset(self, seed=None, options={}):
         self.seed(seed)
-        if self.episode_counter == 0:
-            self.episode_counter = self.episodes_before_change
-            euler = [np.random.randint(0, 3) * (np.pi / 2),
-                     np.random.randint(0, 3) * (np.pi / 2),
-                     np.random.randint(0, 3) * (np.pi / 2)]
-            while euler != self.target_euler:
-                euler = [np.random.randint(0, 3) * (np.pi / 2),
-                         np.random.randint(0, 3) * (np.pi / 2),
-                         np.random.randint(0, 3) * (np.pi / 2)]
-            self.cube_start_orientation = euler
-        self.episode_counter -= 1
 
+        self.newtarget()
 
-        p.resetSimulation(self.client)
-        p.setGravity(0, 0, -10)
-
-        Plane(self.client)
-        self.hand = Hand(self.client)
         random_orientation_euler = (random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2,
                                     random.randint(-1,1) * np.pi/2)
         random_orientation_q = p.getQuaternionFromEuler(random_orientation_euler)
-        self.cube = Cube(self.client, random_orientation_q)
-        # 20 random actions
-        for _ in range(20):
-            action = self.action_space.sample()
-            self.step(action)
+        valid_start = False
+        while not valid_start:
+            valid_start = True
+            p.resetSimulation(self.client)
+            p.setGravity(0, 0, -10)
+            Plane(self.client)
+            self.hand = Hand(self.client)
+            self.cube = Cube(self.client, random_orientation_q)
 
+        # Apply 30 random actions to further randomise cube start position. If the actions drop the cube, reset the simulation and try again.
+            # for _ in range(30):
+            #     action = self.action_space.sample()
+            #     if discretize:
+            #     # Convert discrete action choice from the AI to a continuous action for the motor.
+            #         action = hand_motion_low + (bin_sizes / 2) + (bin_sizes * action)
+            #     action //= 10
+            #     self.hand.apply_action(action)
+            #     p.stepSimulation()
+
+            # # Wait for cube to fall a bit
+            # for _ in range(5):
+            #     p.stepSimulation()
+            # # If cube fell, reset simulation
+            # cube_observation = self.get_cube_observation(self.target_quaternion)
+            # if cube_observation[2] < 0.05:
+                # valid_start = False
+
+        # Reset episode termination condition and setup statistics of this episode
         self.terminated = False
         self.truncated = False
         self.num_steps = 0
         self.info = {}
         self.info["ep_steps"] = self.num_steps
-        self.info["success"] = False
+        self.info["success"] = 0
 
+        # Initial observation
         hand_observation = self.get_hand_observation()
         cube_observation = self.get_cube_observation(self.target_quaternion)
-
         observation = np.concatenate((hand_observation, cube_observation))
         return observation, self.info
 

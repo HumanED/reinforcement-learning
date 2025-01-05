@@ -1,7 +1,17 @@
 import pybullet as p
 import os
 import numpy as np
-from pyquaternion import Quaternion
+
+'''
+Euler ->
+Yellow Up: [0, 0, 0]
+Right Up: [pi/2, 0, 0]
+Left Up: [-pi/2, 0, 0]
+Front Up: [0, pi/2, 0]
+Back Up: [0, -pi/2, 0]
+Down: [pi, 0, 0]
+Up: [0, 0, pi]
+'''
 
 class Cube:
     def __init__(self, client, start_orientation_q):

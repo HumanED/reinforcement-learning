@@ -1,6 +1,6 @@
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
-import shadow_gym
+import shadow_gym # type: ignore
 import numpy as np
 import gymnasium
 import os
@@ -13,8 +13,8 @@ normalized_env = False
 # Set num_evaluate to -1 to enable rendering and just view the project
 num_evaluate = -1
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "17b" + "-" + "shadowgym"
-model_file = "30000.zip"
+run_name = "PPO-19-shadowgym-ethan"
+model_file = "8420000.zip"
 normalize_stats_file = "1800000.pkl"
 
 
@@ -70,8 +70,9 @@ else:
             action, _ = model.predict(obs)
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
-            time.sleep(1/30)
-        # print(f"episode_reward:{episode_reward}")
+            time.sleep(1/24) # proper time
+            # time.sleep(1) # slow mo
+        print(f"episode_reward:{episode_reward}")
         if vectorized_env:
             # In vectorized environments, a list of infos is returned. We only want the first info.
             info = info[0]
