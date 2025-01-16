@@ -1,0 +1,8 @@
+stable-baseline
+scipy
+gymnasium==0.29.1
+tensorboard
+tqdm
+
+# manually install new numpy with
+# pip install numpy==2.2.1

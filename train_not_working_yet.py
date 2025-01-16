@@ -21,29 +21,28 @@ recurrent = False
 vectorized_env = True  # Set to True to use multiple environments
 normalized_env = False
 start_from_existing = True
-existing_model_file = "11 500 000"  # no need .zip extension
+existing_model_file = "PPO-21-shadowgym-ethan/11 500 000"  # no need .zip extension
 # When you want to train PPO-20-shadowgym-ethan more and create PPO-21-shadowgym-ethan
 # Set new_run_name="PPO-21-shadowgym-ethan" and run_name="PPO-20-shadowgym-ethan"
 # A PPO-21 folder is created for the logs and models of the rerun.
-new_run_name = "PPO-21-shadowgym-ethan" 
+this_run_name = "PPO-21-shadowgym-ethan" 
 
 # Run name should have model, unique number, and optionally a description
-run_name = "PPO" + "-" + "20" + "-" + "shadowgym-ethan"
+# run_name = "PPO" + "-" + "20" + "-" + "shadowgym-ethan"
 saving_timesteps_interval = 25_000
 start_saving = 400_000
+seed=1
 
 # Set up folders to store models and logs
 models_dir = os.path.join(os.path.dirname(__file__), 'models')
 logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
 normalize_stats = os.path.join(os.path.dirname(__file__), 'normalize_stats')
-if not start_from_existing and os.path.exists(f"{models_dir}/{run_name}"):
+if not start_from_existing and os.path.exists(f"{models_dir}/{this_run_name}"):
     raise Exception("Error: model folder already exists. Change run_name to prevent overriding existing model folder")
-if not start_from_existing and os.path.exists(f"{logs_dir}/{run_name}"):
+if not start_from_existing and os.path.exists(f"{logs_dir}/{this_run_name}"):
     raise Exception("Error: log folder already exists. Change run_name to prevent overriding existing log folder")
-if not start_from_existing and os.path.exists(f"{normalize_stats}/{run_name}"):
-    raise Exception("Error: normalize_stats folder already exists. Change run_name")
 if normalized_env:
-    os.makedirs(f"{normalize_stats}/{run_name}")
+    os.makedirs(f"{normalize_stats}/{this_run_name}")
 
 class ConsoleLoggerCallback(BaseCallback):
     def _on_step(self) -> bool:
@@ -85,6 +84,7 @@ if __name__ == "__main__":
             env = NormalizeObservation(env)
             env = TransformObservation(env,f=clip_observation)
             env = Monitor(env)
+            env.reset(seed=seed)
             return env
         env = SubprocVecEnv([make_env for _ in range(num_envs)])
         if normalized_env:
@@ -94,9 +94,8 @@ if __name__ == "__main__":
         env = gymnasium.make("ShadowEnv-v0", GUI=False)
         env = Monitor(env)
 
-    full_model_path = None
-    if start_from_existing:
-        full_model_path = os.path.join(models_dir, run_name, existing_model_file)
+    # Load existing model or create a new model
+    full_model_path = os.path.join(models_dir, existing_model_file)
     if recurrent:
         from sb3_contrib import RecurrentPPO
         if start_from_existing:
@@ -113,10 +112,10 @@ if __name__ == "__main__":
 
     timesteps = 0
     while True:
-        model.learn(saving_timesteps_interval, tb_log_name=new_run_name, reset_num_timesteps=False) #, callback=console_logger)
+        model.learn(saving_timesteps_interval, tb_log_name=this_run_name, reset_num_timesteps=False) #, callback=console_logger)
         timesteps += saving_timesteps_interval
         if timesteps >= start_saving:
-            model.save(f"{models_dir}/{new_run_name}/{timesteps}")
+            model.save(f"{models_dir}/{this_run_name}/{timesteps}")
             if vectorized_env and normalized_env:
-                normalize_stats_path = os.path.join(normalize_stats, run_name, str(timesteps) + '.pkl')
+                normalize_stats_path = os.path.join(normalize_stats, this_run_name, str(timesteps) + '.pkl')
                 env.save(normalize_stats_path)
