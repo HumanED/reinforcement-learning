@@ -1,4 +1,4 @@
-stable-baseline
+stable-baselines3==2.4.0
 scipy
 gymnasium==0.29.1
 tensorboard
